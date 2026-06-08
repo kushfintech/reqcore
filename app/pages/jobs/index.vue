@@ -20,18 +20,17 @@ const sourceQuery = computed(() => {
 })
 
 useSeoMeta({
-  title: 'Open Positions — Job Board',
+  title: 'Open Positions',
   description:
-    'Browse open job positions on Reqcore and apply directly. Find your next career opportunity with companies that value transparency.',
-  ogTitle: 'Open Positions — Reqcore Job Board',
+    'Explore open roles at Kush and apply directly. Join our team and grow your career in fintech.',
+  ogTitle: 'Open Positions — Kush Careers',
   ogDescription:
-    'Browse open job positions and apply directly. Powered by the open-source ATS you actually own.',
+    'Explore open roles at Kush and apply directly. Join our team and grow your career in fintech.',
   ogType: 'website',
-  ogImage: '/reqcore-banner-github.jpeg',
   twitterCard: 'summary_large_image',
-  twitterTitle: 'Open Positions — Reqcore Job Board',
+  twitterTitle: 'Open Positions — Kush Careers',
   twitterDescription:
-    'Browse open job positions and apply directly.',
+    'Explore open roles at Kush and apply directly.',
 })
 
 // ─────────────────────────────────────────────

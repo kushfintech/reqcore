@@ -11,40 +11,43 @@
       "openPositions": "Posiciones abiertas",
       "roadmap": "Hoja de ruta",
       "blog": "Blog",
-      "github": "GitHub",
       "dashboard": "Panel de control",
       "logIn": "Iniciar sesión",
       "signUp": "Registrarse"
     },
-    "badge": "ATS de código abierto para equipos de desarrollo",
+    "badge": "Estamos contratando",
     "hero": {
-      "titleLine1": "Tu contratación.",
-      "titleHighlight": "Tu infraestructura.",
-      "subtitle": "Seguimiento de candidatos de código abierto para equipos que alojan en sus propios servidores.",
+      "titleLine1": "Únete al equipo que construye",
+      "titleHighlight": "el futuro de las fintech.",
+      "subtitle": "Kush es una consultora fintech que ayuda a empresas ambiciosas a crear mejores productos financieros. Explora nuestras vacantes y haz crecer tu carrera con nosotros.",
       "goToDashboard": "Ir al panel",
       "signIn": "Iniciar sesión",
       "createAccount": "Crear cuenta",
-      "ctaDemo": "Probar demo en vivo",
-      "ctaStart": "Ver en GitHub",
-      "hint": "Versión temprana de código abierto — prueba la demo con datos de ejemplo, sin registro"
-    },
-    "pillars": {
-      "yourData": {
-        "label": "Tus datos",
-        "desc": "Postgres + MinIO en tu infraestructura. Nada sale de tu red."
-      },
-      "auditable": {
-        "label": "Totalmente auditable",
-        "desc": "Código abierto — cada línea de lógica de matching es visible y personalizable."
-      },
-      "unlimitedSeats": {
-        "label": "Puestos ilimitados",
-        "desc": "Agrega a todo tu equipo de contratación. Sin precio por puesto, nunca."
-      }
+      "viewRoles": "Ver vacantes"
     },
     "footer": {
-      "source": "Código fuente",
-      "tagline": "Reqcore — seguimiento de candidatos de código abierto"
+      "tagline": "Kush Fintech"
+    },
+    "values": {
+      "impact": {
+        "label": "Impacto real",
+        "desc": "Trabaja directamente con equipos fintech líderes en productos usados por miles de personas."
+      },
+      "growth": {
+        "label": "Crece rápido",
+        "desc": "Mentoría, responsabilidad y espacio para crecer desde el primer día."
+      },
+      "flexible": {
+        "label": "Flexible y remoto",
+        "desc": "Trabaja donde rindes mejor: distribuido, orientado a resultados y centrado en las personas."
+      }
+    },
+    "positions": {
+      "title": "Vacantes abiertas",
+      "subtitle": "Encuentra tu próxima oportunidad en nuestro equipo.",
+      "viewAll": "Ver todas las vacantes",
+      "loading": "Cargando vacantes…",
+      "empty": "No hay vacantes abiertas en este momento. ¡Vuelve pronto!"
     }
   }
 }

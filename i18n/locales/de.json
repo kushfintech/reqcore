@@ -11,40 +11,43 @@
       "openPositions": "Offene Stellen",
       "roadmap": "Roadmap",
       "blog": "Blog",
-      "github": "GitHub",
       "dashboard": "Dashboard",
       "logIn": "Anmelden",
       "signUp": "Registrieren"
     },
-    "badge": "Open-Source-ATS für Entwicklerteams",
+    "badge": "Wir stellen ein",
     "hero": {
-      "titleLine1": "Ihr Recruiting.",
-      "titleHighlight": "Ihre Infrastruktur.",
-      "subtitle": "Open-Source-Bewerbermanagement für Teams, die selbst hosten.",
+      "titleLine1": "Werde Teil des Teams, das",
+      "titleHighlight": "die Zukunft der Fintech baut.",
+      "subtitle": "Kush ist eine Fintech-Beratung, die ambitionierte Unternehmen dabei unterstützt, bessere Finanzprodukte zu entwickeln. Entdecke unsere offenen Stellen und entwickle deine Karriere mit uns.",
       "goToDashboard": "Zum Dashboard",
       "signIn": "Anmelden",
       "createAccount": "Konto erstellen",
-      "ctaDemo": "Live-Demo testen",
-      "ctaStart": "Auf GitHub ansehen",
-      "hint": "Frühe Open-Source-Version — testen Sie die Demo mit Beispieldaten, ohne Registrierung"
-    },
-    "pillars": {
-      "yourData": {
-        "label": "Ihre Daten",
-        "desc": "Postgres + MinIO auf Ihrer Infrastruktur. Nichts verlässt Ihr Netzwerk."
-      },
-      "auditable": {
-        "label": "Vollständig auditierbar",
-        "desc": "Open Source — jede Zeile der Matching-Logik ist sichtbar und anpassbar."
-      },
-      "unlimitedSeats": {
-        "label": "Unbegrenzte Plätze",
-        "desc": "Fügen Sie Ihr gesamtes Recruiting-Team hinzu. Kein Preis pro Platz, nie."
-      }
+      "viewRoles": "Offene Stellen ansehen"
     },
     "footer": {
-      "source": "Quellcode",
-      "tagline": "Reqcore — Open-Source-Bewerbermanagement"
+      "tagline": "Kush Fintech"
+    },
+    "values": {
+      "impact": {
+        "label": "Echte Wirkung",
+        "desc": "Arbeite direkt mit führenden Fintech-Teams an Produkten, die von Tausenden genutzt werden."
+      },
+      "growth": {
+        "label": "Schnell wachsen",
+        "desc": "Mentoring, Eigenverantwortung und Raum, um vom ersten Tag an zu wachsen."
+      },
+      "flexible": {
+        "label": "Flexibel & remote",
+        "desc": "Arbeite dort, wo du am besten bist — verteilt, ergebnisorientiert und menschenzentriert."
+      }
+    },
+    "positions": {
+      "title": "Offene Stellen",
+      "subtitle": "Finde deine nächste Chance in unserem Team.",
+      "viewAll": "Alle Stellen ansehen",
+      "loading": "Stellen werden geladen…",
+      "empty": "Derzeit gibt es keine offenen Stellen. Schau bald wieder vorbei!"
     }
   }
 }

@@ -229,6 +229,7 @@ const commonTimezones = [
   'Africa/Johannesburg',
   'Asia/Dubai',
   'Asia/Kolkata',
+  'Asia/Kathmandu',
   'Asia/Bangkok',
   'Asia/Singapore',
   'Asia/Shanghai',

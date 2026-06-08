@@ -11,40 +11,43 @@
       "openPositions": "Postes ouverts",
       "roadmap": "Feuille de route",
       "blog": "Blog",
-      "github": "GitHub",
       "dashboard": "Tableau de bord",
       "logIn": "Se connecter",
       "signUp": "S'inscrire"
     },
-    "badge": "ATS Open Source pour les équipes de développeurs",
+    "badge": "Nous recrutons",
     "hero": {
-      "titleLine1": "Votre recrutement.",
-      "titleHighlight": "Votre infrastructure.",
-      "subtitle": "Suivi de candidatures open source conçu pour les équipes qui auto-hébergent.",
+      "titleLine1": "Rejoignez l'équipe qui construit",
+      "titleHighlight": "l'avenir de la fintech.",
+      "subtitle": "Kush est un cabinet de conseil fintech qui aide les entreprises ambitieuses à concevoir de meilleurs produits financiers. Découvrez nos postes ouverts et développez votre carrière avec nous.",
       "goToDashboard": "Aller au tableau de bord",
       "signIn": "Se connecter",
       "createAccount": "Créer un compte",
-      "ctaDemo": "Essayer la démo",
-      "ctaStart": "Voir sur GitHub",
-      "hint": "Version open source précoce — essayez la démo avec des données d'exemple, sans inscription"
-    },
-    "pillars": {
-      "yourData": {
-        "label": "Vos données",
-        "desc": "Postgres + MinIO sur votre infrastructure. Rien ne quitte votre réseau."
-      },
-      "auditable": {
-        "label": "Entièrement auditable",
-        "desc": "Open source — chaque ligne de logique de matching est visible et modifiable."
-      },
-      "unlimitedSeats": {
-        "label": "Utilisateurs illimités",
-        "desc": "Ajoutez toute votre équipe de recrutement. Pas de tarification par siège, jamais."
-      }
+      "viewRoles": "Voir les postes"
     },
     "footer": {
-      "source": "Code source",
-      "tagline": "Reqcore — suivi de candidatures open source"
+      "tagline": "Kush Fintech"
+    },
+    "values": {
+      "impact": {
+        "label": "Impact réel",
+        "desc": "Travaillez directement avec des équipes fintech de premier plan sur des produits utilisés par des milliers de personnes."
+      },
+      "growth": {
+        "label": "Évoluez vite",
+        "desc": "Mentorat, responsabilités et marge de progression dès le premier jour."
+      },
+      "flexible": {
+        "label": "Flexible et à distance",
+        "desc": "Travaillez là où vous êtes le plus performant — distribué, axé sur les résultats et centré sur l'humain."
+      }
+    },
+    "positions": {
+      "title": "Postes ouverts",
+      "subtitle": "Trouvez votre prochaine opportunité au sein de notre équipe.",
+      "viewAll": "Voir tous les postes",
+      "loading": "Chargement des postes…",
+      "empty": "Aucun poste ouvert pour le moment. Revenez bientôt !"
     }
   }
 }

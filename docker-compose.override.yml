@@ -1,0 +1,7 @@
+# Local-only override (not committed). Remaps the dev Postgres off the default
+# 5432 because another Postgres is already running on the host.
+# !override replaces the base port list instead of appending to it.
+services:
+  db:
+    ports: !override
+      - "127.0.0.1:5433:5432"

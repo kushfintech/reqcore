@@ -7,8 +7,8 @@ definePageMeta({
 });
 
 useSeoMeta({
-    title: "Sign In — Reqcore",
-    description: "Sign in to your Reqcore account",
+    title: "Sign In — Kush Talents",
+    description: "Sign in to your Kush Talents account",
     robots: "noindex, nofollow",
 });
 
@@ -366,21 +366,5 @@ async function handleSocialSignIn(providerId: string) {
                 <span v-if="!ssoRedirecting" class="inline-flex items-center rounded-full bg-white/15 dark:bg-surface-900/15 px-1.5 py-0.5 text-[10px] font-medium text-white/80 dark:text-surface-900/80 ring-1 ring-white/20 dark:ring-surface-900/20">Beta</span>
             </button>
         </template>
-
-        <p class="text-center text-sm text-surface-500 dark:text-surface-400">
-            Don't have an account?
-            <NuxtLink
-                :to="
-                    route.query.invitation
-                        ? $localePath({
-                              path: '/auth/sign-up',
-                              query: { invitation: route.query.invitation },
-                          })
-                        : $localePath('/auth/sign-up')
-                "
-                class="text-brand-600 dark:text-brand-400 hover:underline"
-                >Sign up</NuxtLink
-            >
-        </p>
     </form>
 </template>
