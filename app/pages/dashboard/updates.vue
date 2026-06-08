@@ -564,47 +564,5 @@ function formatDate(dateString: string | null | undefined): string {
     </section>
 
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- Manual update instructions                 -->
-    <!-- ═══════════════════════════════════════════ -->
-    <section class="mt-6 rounded-xl border border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 overflow-hidden shadow-sm">
-      <details class="group">
-        <summary class="flex items-center gap-3 px-6 py-5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
-          <div class="flex items-center justify-center size-10 rounded-lg bg-surface-100 dark:bg-surface-800 text-surface-500 dark:text-surface-400">
-            <Info class="size-5" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <h2 class="text-base font-semibold text-surface-900 dark:text-surface-100">Manual update</h2>
-            <p class="text-sm text-surface-500 dark:text-surface-400">If you prefer to update from the command line.</p>
-          </div>
-          <ChevronRight class="size-4 text-surface-400 transition-transform duration-200 group-open:rotate-90" />
-        </summary>
-        <div class="border-t border-surface-100 dark:border-surface-800 px-6 py-5 space-y-4">
-          <div>
-            <h4 class="text-sm font-semibold text-surface-800 dark:text-surface-200 mb-2">Docker Compose</h4>
-            <div class="rounded-lg bg-surface-900 dark:bg-surface-950 px-4 py-3 font-mono text-sm text-surface-100 space-y-1 overflow-x-auto">
-              <p class="text-surface-500"># Pull the latest image and restart</p>
-              <p>docker compose pull</p>
-              <p>docker compose up -d</p>
-            </div>
-          </div>
-          <div>
-            <h4 class="text-sm font-semibold text-surface-800 dark:text-surface-200 mb-2">Manual / Git deployment</h4>
-            <div class="rounded-lg bg-surface-900 dark:bg-surface-950 px-4 py-3 font-mono text-sm text-surface-100 space-y-1 overflow-x-auto">
-              <p class="text-surface-500"># Navigate to your Kush Talents directory</p>
-              <p>cd /path/to/reqcore</p>
-              <p class="text-surface-500 mt-3"># Pull the latest version</p>
-              <p>git pull origin main</p>
-              <p class="text-surface-500 mt-3"># Rebuild and restart</p>
-              <p>docker compose up --build -d</p>
-            </div>
-          </div>
-          <p class="text-xs text-surface-400 dark:text-surface-500">
-            Database migrations run automatically on startup. Your data is preserved across updates.
-          </p>
-        </div>
-      </details>
-    </section>
-
   </div>
 </template>

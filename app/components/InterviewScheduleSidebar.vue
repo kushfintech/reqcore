@@ -28,6 +28,20 @@ const createdInterview = ref<{ id: string; googleCalendarEventLink?: string | nu
 // ─── Calendar integration status ──────────────────────────────────
 const { isConnected: calendarConnected } = useCalendarIntegration()
 
+// ─── Device timezone (scheduler default) ──────────────────────────
+// Some platforms still report legacy IANA aliases; map them to the canonical
+// zone names used in the dropdown (e.g. "Asia/Katmandu" → "Asia/Kathmandu")
+// so the device default matches an existing option instead of duplicating it.
+const TZ_ALIASES: Record<string, string> = {
+  'Asia/Katmandu': 'Asia/Kathmandu',
+  'Asia/Calcutta': 'Asia/Kolkata',
+  'Asia/Saigon': 'Asia/Ho_Chi_Minh',
+  'Asia/Rangoon': 'Asia/Yangon',
+  'Europe/Kiev': 'Europe/Kyiv',
+}
+const rawDeviceTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+const deviceTimezone = TZ_ALIASES[rawDeviceTimezone] ?? rawDeviceTimezone
+
 // ─── Form state ───────────────────────────────────────────────────
 const form = reactive({
   title: '',
@@ -37,7 +51,7 @@ const form = reactive({
   location: '',
   notes: '',
   interviewers: [] as string[],
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timezone: deviceTimezone,
 })
 
 const errors = ref<Record<string, string>>({})
@@ -240,6 +254,14 @@ const commonTimezones = [
   'Australia/Melbourne',
   'Pacific/Auckland',
 ]
+
+// The device timezone is always offered as an option (prepended when it isn't
+// already in the common list), so the <select> can show it as the selected value.
+const timezoneOptions = computed(() =>
+  commonTimezones.includes(deviceTimezone)
+    ? commonTimezones
+    : [deviceTimezone, ...commonTimezones],
+)
 
 // ─── Formatted preview ───────────────────────────────────────────
 const formattedDateTime = computed(() => {
@@ -842,7 +864,9 @@ async function handleMoveToInterview() {
                   v-model="form.timezone"
                   class="w-full rounded-lg border border-surface-200 dark:border-surface-700/80 bg-surface-50/50 dark:bg-surface-800/50 px-3 py-1.5 text-[13px] text-surface-700 dark:text-surface-300 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all cursor-pointer"
                 >
-                  <option v-for="tz in commonTimezones" :key="tz" :value="tz">{{ tz }}</option>
+                  <option v-for="tz in timezoneOptions" :key="tz" :value="tz">
+                    {{ tz }}{{ tz === deviceTimezone ? ' (your timezone)' : '' }}
+                  </option>
                 </select>
               </div>
             </div>
