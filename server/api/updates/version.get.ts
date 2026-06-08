@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
       {
         headers: {
           'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': `Reqcore/${currentVersion}`,
+          'User-Agent': `Kush ATS/${currentVersion}`,
         },
         signal: AbortSignal.timeout(10_000),
       },

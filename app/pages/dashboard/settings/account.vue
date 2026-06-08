@@ -7,7 +7,7 @@ import {
 definePageMeta({})
 
 useSeoMeta({
-  title: 'Account Settings — Reqcore',
+  title: 'Account Settings — Kush ATS',
   description: 'Manage your personal account settings',
 })
 

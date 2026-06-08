@@ -15,7 +15,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Updates — Reqcore',
+  title: 'Updates — Kush ATS',
   description: 'Check for updates and manage your self-hosted instance',
 })
 
@@ -399,7 +399,7 @@ function formatDate(dateString: string | null | undefined): string {
         >
           <div v-if="showUpdateConfirm" class="rounded-lg border border-warning-200 dark:border-warning-800 bg-warning-50/50 dark:bg-warning-950/30 px-4 py-4 space-y-3">
             <p class="text-sm text-surface-700 dark:text-surface-300">
-              This will update your Reqcore instance from <strong>v{{ versionInfo.currentVersion }}</strong> to <strong>v{{ versionInfo.latestVersion }}</strong>. The app will restart during the update.
+              This will update your Kush ATS instance from <strong>v{{ versionInfo.currentVersion }}</strong> to <strong>v{{ versionInfo.latestVersion }}</strong>. The app will restart during the update.
             </p>
             <div class="flex items-center gap-2">
               <button
@@ -563,217 +563,6 @@ function formatDate(dateString: string | null | undefined): string {
       </div>
     </section>
 
-    <!-- Expand / Collapse controls -->
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-sm font-semibold text-surface-700 dark:text-surface-300 uppercase tracking-wider">
-        Changelog
-      </h2>
-      <div class="flex items-center gap-2 text-xs">
-        <button
-          class="text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition-colors cursor-pointer bg-transparent border-0"
-          @click="expandAll"
-        >
-          Expand all
-        </button>
-        <span class="text-surface-300 dark:text-surface-600">·</span>
-        <button
-          class="text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition-colors cursor-pointer bg-transparent border-0"
-          @click="collapseAll"
-        >
-          Collapse all
-        </button>
-      </div>
-    </div>
-
-    <!-- Loading skeleton -->
-    <div v-if="status === 'pending'" class="space-y-4">
-      <div v-for="i in 4" :key="i" class="rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 p-5">
-        <div class="flex items-center gap-3 animate-pulse">
-          <div class="size-8 rounded-lg bg-surface-100 dark:bg-surface-800" />
-          <div class="flex-1 space-y-2">
-            <div class="h-4 w-32 rounded bg-surface-100 dark:bg-surface-800" />
-            <div class="h-3 w-48 rounded bg-surface-100 dark:bg-surface-800" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Empty state -->
-    <div
-      v-else-if="entries.length === 0"
-      class="rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 p-12 text-center"
-    >
-      <RefreshCw class="size-8 text-surface-300 dark:text-surface-600 mx-auto mb-3" />
-      <div class="text-sm font-medium text-surface-500 dark:text-surface-400">No changelog entries found</div>
-      <div class="text-xs text-surface-400 dark:text-surface-500 mt-1">The CHANGELOG.md file may be missing or empty.</div>
-    </div>
-
-    <!-- Changelog timeline -->
-    <div v-else class="relative">
-      <!-- Timeline line -->
-      <div class="absolute left-[19px] top-6 bottom-6 w-px bg-surface-200 dark:bg-surface-700" />
-
-      <div class="space-y-3">
-        <div
-          v-for="(entry, idx) in entries"
-          :key="`${entry.title}-${idx}`"
-          class="relative"
-        >
-          <!-- Timeline dot -->
-          <div
-            class="absolute left-2.5 top-[22px] z-10 size-3 rounded-full border-2 transition-colors duration-200"
-            :class="entry.version
-              ? 'bg-brand-500 border-brand-200 dark:border-brand-800'
-              : entry.title === 'Unreleased'
-                ? 'bg-accent-500 border-accent-200 dark:border-accent-800'
-                : 'bg-surface-300 dark:bg-surface-600 border-surface-200 dark:border-surface-700'"
-          />
-
-          <!-- Entry card -->
-          <div
-            class="ml-10 rounded-xl border transition-all duration-200"
-            :class="expandedEntries.has(idx)
-              ? 'border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900 shadow-sm'
-              : 'border-transparent hover:border-surface-200 dark:hover:border-surface-700 bg-white/60 dark:bg-surface-900/60 hover:bg-white dark:hover:bg-surface-900 hover:shadow-sm'"
-          >
-            <!-- Entry header -->
-            <button
-              class="flex items-center gap-3 w-full px-5 py-4 text-left cursor-pointer border-0 bg-transparent"
-              @click="toggleEntry(idx)"
-            >
-              <!-- Version / date icon -->
-              <div
-                v-if="entry.version"
-                class="flex items-center justify-center size-8 rounded-lg bg-brand-50 dark:bg-brand-950/40 shrink-0"
-              >
-                <Tag class="size-4 text-brand-600 dark:text-brand-400" />
-              </div>
-              <div
-                v-else-if="entry.title === 'Unreleased'"
-                class="flex items-center justify-center size-8 rounded-lg bg-accent-50 dark:bg-accent-950/40 shrink-0"
-              >
-                <Sparkles class="size-4 text-accent-600 dark:text-accent-400" />
-              </div>
-              <div
-                v-else
-                class="flex items-center justify-center size-8 rounded-lg bg-surface-100 dark:bg-surface-800 shrink-0"
-              >
-                <Clock class="size-4 text-surface-500" />
-              </div>
-
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2">
-                  <span class="text-sm font-bold text-surface-900 dark:text-surface-100">
-                    {{ entry.title }}
-                  </span>
-                  <span
-                    v-if="entry.version && entry.version === currentVersion"
-                    class="inline-flex items-center rounded-md bg-brand-50 dark:bg-brand-950/40 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 dark:text-brand-300 ring-1 ring-inset ring-brand-200 dark:ring-brand-800"
-                  >
-                    Current
-                  </span>
-                  <span
-                    v-if="entry.title === 'Unreleased'"
-                    class="inline-flex items-center rounded-md bg-accent-50 dark:bg-accent-950/40 px-1.5 py-0.5 text-[10px] font-semibold text-accent-700 dark:text-accent-300 ring-1 ring-inset ring-accent-200 dark:ring-accent-800"
-                  >
-                    Next
-                  </span>
-                </div>
-                <div v-if="entry.date" class="text-xs text-surface-400 dark:text-surface-500 mt-0.5">
-                  {{ entry.date }}
-                </div>
-              </div>
-
-              <!-- Section count summary -->
-              <div class="hidden sm:flex items-center gap-1.5 shrink-0">
-                <span
-                  v-for="section in entry.sections.slice(0, 3)"
-                  :key="section.heading"
-                  class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset"
-                  :class="`${sectionMeta(section.heading).bg} ${sectionMeta(section.heading).ring} ${sectionMeta(section.heading).color}`"
-                >
-                  <component :is="sectionMeta(section.heading).icon" class="size-2.5" />
-                  {{ section.items.length }}
-                </span>
-              </div>
-
-              <ChevronDown
-                class="size-4 text-surface-400 transition-transform duration-200 shrink-0"
-                :class="expandedEntries.has(idx) ? '' : '-rotate-90'"
-              />
-            </button>
-
-            <!-- Entry content -->
-            <Transition
-              enter-active-class="transition-all duration-200 ease-out"
-              enter-from-class="opacity-0 max-h-0"
-              enter-to-class="opacity-100 max-h-[2000px]"
-              leave-active-class="transition-all duration-150 ease-in"
-              leave-from-class="opacity-100 max-h-[2000px]"
-              leave-to-class="opacity-0 max-h-0"
-            >
-              <div v-if="expandedEntries.has(idx)" class="overflow-hidden">
-                <div class="border-t border-surface-100 dark:border-surface-800 px-5 pb-5 pt-4 space-y-5">
-                  <div v-for="section in entry.sections" :key="section.heading">
-                    <!-- Section heading -->
-                    <div class="flex items-center gap-2 mb-3">
-                      <component
-                        :is="sectionMeta(section.heading).icon"
-                        class="size-3.5"
-                        :class="sectionMeta(section.heading).color"
-                      />
-                      <h4 class="text-xs font-semibold uppercase tracking-wider text-surface-500 dark:text-surface-400">
-                        {{ section.heading.replace(/[✨🐛]/g, '').trim() }}
-                      </h4>
-                    </div>
-
-                    <!-- Items list -->
-                    <ul class="space-y-2 ml-0 list-none p-0">
-                      <li
-                        v-for="(item, itemIdx) in section.items"
-                        :key="itemIdx"
-                        class="flex items-start gap-2.5 text-sm text-surface-600 dark:text-surface-400 leading-relaxed"
-                      >
-                        <div class="mt-1.5 size-1.5 rounded-full shrink-0" :class="sectionMeta(section.heading).color.replace('text-', 'bg-')" />
-                        <span class="flex-1 min-w-0">{{ cleanItem(item) }}</span>
-                        <a
-                          v-if="extractLink(item)"
-                          :href="extractLink(item)!"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="mt-0.5 shrink-0 text-surface-300 dark:text-surface-600 hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
-                          title="View commit"
-                        >
-                          <GitCommit class="size-3.5" />
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <!-- View on GitHub link for versioned releases -->
-                  <div v-if="entry.link" class="pt-2 border-t border-surface-100 dark:border-surface-800">
-                    <a
-                      :href="entry.link"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors"
-                    >
-                      View full release on GitHub
-                      <ExternalLink class="size-3" />
-                    </a>
-                  </div>
-
-                  <!-- Empty section fallback -->
-                  <div v-if="entry.sections.length === 0" class="text-sm text-surface-400 dark:text-surface-500 italic">
-                    No detailed changes recorded for this entry.
-                  </div>
-                </div>
-              </div>
-            </Transition>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- ═══════════════════════════════════════════ -->
     <!-- Manual update instructions                 -->
@@ -802,7 +591,7 @@ function formatDate(dateString: string | null | undefined): string {
           <div>
             <h4 class="text-sm font-semibold text-surface-800 dark:text-surface-200 mb-2">Manual / Git deployment</h4>
             <div class="rounded-lg bg-surface-900 dark:bg-surface-950 px-4 py-3 font-mono text-sm text-surface-100 space-y-1 overflow-x-auto">
-              <p class="text-surface-500"># Navigate to your Reqcore directory</p>
+              <p class="text-surface-500"># Navigate to your Kush ATS directory</p>
               <p>cd /path/to/reqcore</p>
               <p class="text-surface-500 mt-3"># Pull the latest version</p>
               <p>git pull origin main</p>
@@ -817,17 +606,5 @@ function formatDate(dateString: string | null | undefined): string {
       </details>
     </section>
 
-    <!-- Footer link -->
-    <div class="mt-8 mb-4 text-center">
-      <a
-        href="https://github.com/reqcore-inc/reqcore/releases"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex items-center gap-1.5 text-xs font-medium text-surface-400 dark:text-surface-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
-      >
-        View all releases on GitHub
-        <ExternalLink class="size-3" />
-      </a>
-    </div>
   </div>
 </template>

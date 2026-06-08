@@ -13,7 +13,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Interviews — Reqcore',
+  title: 'Interviews — Kush ATS',
   description: 'Manage all scheduled interviews',
   robots: 'noindex, nofollow',
 })

@@ -11,40 +11,43 @@
       "openPositions": "Open Positions",
       "roadmap": "Roadmap",
       "blog": "Blog",
-      "github": "GitHub",
       "dashboard": "Dashboard",
       "logIn": "Log in",
       "signUp": "Sign up"
     },
-    "badge": "Open Source ATS for Developer Teams",
+    "badge": "We're hiring",
     "hero": {
-      "titleLine1": "Your hiring.",
-      "titleHighlight": "Your infrastructure.",
-      "subtitle": "Open-source applicant tracking built for teams that self-host.",
+      "titleLine1": "Join the team building",
+      "titleHighlight": "the future of fintech.",
+      "subtitle": "Kush is a fintech consultancy helping ambitious companies ship better financial products. Explore our open roles and grow your career with us.",
       "goToDashboard": "Go to Dashboard",
       "signIn": "Sign in",
       "createAccount": "Create account",
-      "ctaDemo": "Try live demo",
-      "ctaStart": "View on GitHub",
-      "hint": "Early open-source release — try the demo with sample data, no sign-up needed"
-    },
-    "pillars": {
-      "yourData": {
-        "label": "Your data",
-        "desc": "Postgres + MinIO on your infrastructure. Nothing leaves your network."
-      },
-      "auditable": {
-        "label": "Fully auditable",
-        "desc": "Open source — every line of matching logic is visible and overridable."
-      },
-      "unlimitedSeats": {
-        "label": "Unlimited seats",
-        "desc": "Add your whole hiring team. No per-seat pricing, ever."
-      }
+      "viewRoles": "View open roles"
     },
     "footer": {
-      "source": "Source",
-      "tagline": "Reqcore — open-source applicant tracking"
+      "tagline": "Kush Fintech"
+    },
+    "values": {
+      "impact": {
+        "label": "Real impact",
+        "desc": "Work directly with leading fintech teams on products used by thousands."
+      },
+      "growth": {
+        "label": "Grow fast",
+        "desc": "Mentorship, ownership, and the room to level up from day one."
+      },
+      "flexible": {
+        "label": "Flexible & remote",
+        "desc": "Work where you do your best — distributed, outcome-driven, and people-first."
+      }
+    },
+    "positions": {
+      "title": "Open positions",
+      "subtitle": "Find your next opportunity on our team.",
+      "viewAll": "View all openings",
+      "loading": "Loading positions…",
+      "empty": "There are no open positions right now. Check back soon!"
     }
   }
 }

@@ -17,7 +17,7 @@ const { data: job } = useFetch(`/api/public/jobs/${jobSlug}`, {
 })
 
 useSeoMeta({
-  title: 'Application Submitted — Reqcore',
+  title: 'Application Submitted — Kush ATS',
   robots: 'noindex, nofollow',
 })
 </script>
@@ -50,12 +50,12 @@ useSeoMeta({
       >
         Browse more positions
       </NuxtLink>
-      <a
-        :href="useRuntimeConfig().public.marketingUrl"
+      <NuxtLink
+        :to="$localePath('/')"
         class="inline-flex items-center rounded-lg border border-surface-300 dark:border-surface-700 px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
       >
         Back to Home
-      </a>
+      </NuxtLink>
     </div>
   </div>
 </template>

@@ -13,17 +13,27 @@
 // ─── Application status transitions ────────────────────────────────
 /**
  * Allowed status transitions for applications.
- * - `hired` is terminal — no forward transitions
- * - `rejected` can be re-opened back to `new`
+ *
+ * Free movement: a candidate can be moved from any stage to any other
+ * stage (including stepping backward and re-opening `hired`). Each stage
+ * simply lists every other stage as a valid target.
  */
-export const APPLICATION_STATUS_TRANSITIONS: Record<string, string[]> = {
-  new: ['screening', 'interview', 'rejected'],
-  screening: ['interview', 'offer', 'rejected'],
-  interview: ['offer', 'rejected'],
-  offer: ['hired', 'rejected'],
-  hired: [],
-  rejected: ['new'],
-}
+const APPLICATION_STATUSES = [
+  'new',
+  'screening',
+  'interview',
+  'offer',
+  'hired',
+  'rejected',
+] as const
+
+export const APPLICATION_STATUS_TRANSITIONS: Record<string, string[]> =
+  Object.fromEntries(
+    APPLICATION_STATUSES.map((stage) => [
+      stage,
+      APPLICATION_STATUSES.filter((target) => target !== stage),
+    ]),
+  )
 
 // ─── Job status transitions ────────────────────────────────────────
 /**

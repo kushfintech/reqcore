@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Github, Sun, Moon } from 'lucide-vue-next'
+import { Sun, Moon } from 'lucide-vue-next'
 
 defineProps<{
   activePage?: 'features' | 'jobs' | 'roadmap' | 'blog' | 'docs'
@@ -14,22 +14,22 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
 <template>
   <nav class="fixed inset-x-0 top-0 z-50 border-b border-surface-200/80 dark:border-white/[0.06] bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-xl">
     <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-      <!-- Logo — links to marketing site (reqcore.com) -->
-      <a
-        :href="useRuntimeConfig().public.marketingUrl"
-        class="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight text-surface-900 dark:text-white"
+      <!-- Logo — links to the careers home -->
+      <NuxtLink
+        :to="localePath('/')"
+        class="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight text-surface-900 dark:text-white no-underline"
       >
         <img
           src="/eagle-mascot-logo-128.png"
-          alt="Reqcore mascot"
+          alt="Kush ATS logo"
           width="28"
           height="28"
           loading="eager"
           decoding="sync"
           class="h-7 w-7 object-contain"
         />
-        Reqcore
-      </a>
+        Kush ATS
+      </NuxtLink>
 
       <!-- Center nav links (desktop) -->
       <div class="hidden items-center gap-1 md:flex">
@@ -40,15 +40,6 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
         >
           {{ t('home.nav.openPositions') }}
         </NuxtLink>
-        <a
-          href="https://github.com/reqcore-inc/reqcore"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium text-surface-500 dark:text-surface-400 transition hover:text-surface-900 dark:hover:text-white"
-        >
-          <Github class="h-3.5 w-3.5" />
-          {{ t('home.nav.github') }}
-        </a>
       </div>
 
       <!-- Right: session actions + language switcher -->

@@ -26,7 +26,7 @@ const { data: job, status: fetchStatus, error: fetchError } = useFetch(
 )
 
 useSeoMeta({
-  title: computed(() => job.value ? `Apply — ${job.value.title}` : 'Apply — Reqcore'),
+  title: computed(() => job.value ? `Apply — ${job.value.title}` : 'Apply — Kush ATS'),
   description: computed(() => job.value?.description?.slice(0, 160) ?? 'Submit your application'),
   robots: 'noindex, nofollow',
 })
@@ -276,12 +276,12 @@ const typeLabels: Record<string, string> = {
       <p class="text-sm text-surface-500 mb-6 max-w-xs">
         This position may have been filled or is no longer accepting applications.
       </p>
-      <a
-        :href="useRuntimeConfig().public.marketingUrl"
+      <NuxtLink
+        :to="$localePath('/')"
         class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700 transition-colors shadow-sm"
       >
         Back to Home
-      </a>
+      </NuxtLink>
     </div>
 
     <!-- Application form -->

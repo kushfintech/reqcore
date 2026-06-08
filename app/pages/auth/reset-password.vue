@@ -5,8 +5,8 @@ definePageMeta({
 });
 
 useSeoMeta({
-    title: "Reset Password — Reqcore",
-    description: "Set a new password for your Reqcore account",
+    title: "Reset Password — Kush ATS",
+    description: "Set a new password for your Kush ATS account",
     robots: "noindex, nofollow",
 });
 

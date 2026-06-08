@@ -5,8 +5,8 @@ definePageMeta({
 });
 
 useSeoMeta({
-    title: "Sign Up — Reqcore",
-    description: "Create your Reqcore account",
+    title: "Sign Up — Kush ATS",
+    description: "Create your Kush ATS account",
     robots: "noindex, nofollow",
 });
 

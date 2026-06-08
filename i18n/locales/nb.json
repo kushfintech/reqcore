@@ -11,40 +11,43 @@
       "openPositions": "Åpne stillinger",
       "roadmap": "Fremdriftsplan",
       "blog": "Blogg",
-      "github": "GitHub",
       "dashboard": "Kontrollpanel",
       "logIn": "Logg inn",
       "signUp": "Registrer deg"
     },
-    "badge": "Åpen kildekode ATS for utviklerteam",
+    "badge": "Vi ansetter",
     "hero": {
-      "titleLine1": "Din rekruttering.",
-      "titleHighlight": "Din infrastruktur.",
-      "subtitle": "Åpen kildekode kandidatsporing bygget for team som drifter selv.",
+      "titleLine1": "Bli med på laget som bygger",
+      "titleHighlight": "fremtidens fintech.",
+      "subtitle": "Kush er et fintech-konsulentselskap som hjelper ambisiøse selskaper med å lage bedre finansprodukter. Utforsk våre ledige stillinger og utvikle karrieren din sammen med oss.",
       "goToDashboard": "Gå til kontrollpanel",
       "signIn": "Logg inn",
       "createAccount": "Opprett konto",
-      "ctaDemo": "Prøv live demo",
-      "ctaStart": "Se på GitHub",
-      "hint": "Tidlig åpen kildekode-utgivelse — prøv demoen med eksempeldata, ingen registrering nødvendig"
-    },
-    "pillars": {
-      "yourData": {
-        "label": "Dine data",
-        "desc": "Postgres + MinIO på din infrastruktur. Ingenting forlater nettverket ditt."
-      },
-      "auditable": {
-        "label": "Fullt reviderbar",
-        "desc": "Åpen kildekode — hver linje med matchingslogikk er synlig og kan overstyres."
-      },
-      "unlimitedSeats": {
-        "label": "Ubegrensede plasser",
-        "desc": "Legg til hele rekrutteringsteamet ditt. Ingen pris per bruker, noensinne."
-      }
+      "viewRoles": "Se ledige stillinger"
     },
     "footer": {
-      "source": "Kildekode",
-      "tagline": "Reqcore — åpen kildekode kandidatsporing"
+      "tagline": "Kush Fintech"
+    },
+    "values": {
+      "impact": {
+        "label": "Reell innvirkning",
+        "desc": "Jobb direkte med ledende fintech-team på produkter som brukes av tusenvis."
+      },
+      "growth": {
+        "label": "Voks raskt",
+        "desc": "Mentorering, eierskap og rom til å vokse fra første dag."
+      },
+      "flexible": {
+        "label": "Fleksibel og ekstern",
+        "desc": "Jobb der du presterer best — distribuert, resultatorientert og menneskeorientert."
+      }
+    },
+    "positions": {
+      "title": "Ledige stillinger",
+      "subtitle": "Finn din neste mulighet i teamet vårt.",
+      "viewAll": "Se alle stillinger",
+      "loading": "Laster stillinger…",
+      "empty": "Det er ingen ledige stillinger akkurat nå. Kom tilbake snart!"
     }
   }
 }
