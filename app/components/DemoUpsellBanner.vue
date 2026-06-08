@@ -35,7 +35,7 @@ async function handleUpgrade() {
                 Ready for your own instance?
               </p>
               <p class="truncate text-[11px] text-white/40">
-                Use Kush ATS on cloud or self-hosted
+                Use Kush Talents on cloud or self-hosted
               </p>
             </div>
           </div>

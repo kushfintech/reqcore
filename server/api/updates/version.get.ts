@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
       {
         headers: {
           'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': `Kush ATS/${currentVersion}`,
+          'User-Agent': `Kush Talents/${currentVersion}`,
         },
         signal: AbortSignal.timeout(10_000),
       },

@@ -44,7 +44,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Create Job — Kush ATS',
+  title: 'Create Job — Kush Talents',
   description: 'Create a new job posting',
 })
 

@@ -7,7 +7,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Create Organization — Kush ATS',
+  title: 'Create Organization — Kush Talents',
   description: 'Create your organization to start recruiting',
   robots: 'noindex, nofollow',
 })

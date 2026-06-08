@@ -4,7 +4,7 @@ import { Building2, Save, AlertTriangle, Trash2, Loader2 } from 'lucide-vue-next
 definePageMeta({})
 
 useSeoMeta({
-  title: 'Organization Settings — Kush ATS',
+  title: 'Organization Settings — Kush Talents',
   description: 'Manage your organization settings',
 })
 

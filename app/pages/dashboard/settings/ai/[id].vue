@@ -9,7 +9,7 @@ import { Loader2, AlertTriangle } from 'lucide-vue-next'
 definePageMeta({})
 
 useSeoMeta({
-  title: 'Edit AI model — Kush ATS',
+  title: 'Edit AI model — Kush Talents',
   description: 'Update an existing AI provider configuration.',
 })
 

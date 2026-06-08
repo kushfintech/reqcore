@@ -14,7 +14,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Source Tracking — Kush ATS',
+  title: 'Source Tracking — Kush Talents',
   description: 'Track where your applications come from',
 })
 

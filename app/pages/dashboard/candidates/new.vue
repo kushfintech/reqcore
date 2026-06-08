@@ -8,7 +8,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Add Candidate — Kush ATS',
+  title: 'Add Candidate — Kush Talents',
   description: 'Add a new candidate to your talent pool',
 })
 

@@ -13,7 +13,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Interviews — Kush ATS',
+  title: 'Interviews — Kush Talents',
   description: 'Manage all scheduled interviews',
   robots: 'noindex, nofollow',
 })

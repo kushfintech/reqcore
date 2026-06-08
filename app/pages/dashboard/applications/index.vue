@@ -7,7 +7,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Applications — Kush ATS',
+  title: 'Applications — Kush Talents',
   description: 'Manage applications across all jobs',
 })
 

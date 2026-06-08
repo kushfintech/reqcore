@@ -16,7 +16,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Timeline — Kush ATS',
+  title: 'Timeline — Kush Talents',
   description: 'Full activity timeline for your organization',
 })
 

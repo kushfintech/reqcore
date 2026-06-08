@@ -17,7 +17,7 @@ const { needsConsent, acceptAnalytics, declineAnalytics } = useAnalyticsConsent(
     >
       <p class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-white/40">A small ask</p>
       <p class="text-[13px] leading-relaxed text-white/70">
-        Help us improve Kush ATS. No ads, no data selling, just product insights.
+        Help us improve Kush Talents. No ads, no data selling, just product insights.
       </p>
       <p class="mt-1.5 text-[12px] text-white/40">
         <a

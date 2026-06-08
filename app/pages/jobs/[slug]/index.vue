@@ -52,7 +52,7 @@ const jobDescriptionPlain = computed(() => markdownToPlainText(job.value?.descri
 // ─────────────────────────────────────────────
 
 useSeoMeta({
-  title: computed(() => job.value ? `${job.value.title} — Hiring Now` : 'Job Details — Kush ATS'),
+  title: computed(() => job.value ? `${job.value.title} — Hiring Now` : 'Job Details — Kush Talents'),
   description: computed(() => {
     if (!job.value) return 'View job details and apply'
     const loc = job.value.location ? ` in ${job.value.location}` : ''

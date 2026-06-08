@@ -20,7 +20,7 @@ const { job, status: fetchStatus, error: fetchError, updateJob, deleteJob } = us
 
 useSeoMeta({
   title: computed(() =>
-    job.value ? `Settings — ${job.value.title} — Kush ATS` : 'Job Settings — Kush ATS',
+    job.value ? `Settings — ${job.value.title} — Kush Talents` : 'Job Settings — Kush Talents',
   ),
 })
 

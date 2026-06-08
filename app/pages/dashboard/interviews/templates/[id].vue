@@ -150,7 +150,7 @@ const previewSubject = computed(() => renderTemplatePreview(form.subject, sample
 const previewBody = computed(() => renderTemplatePreview(form.body, sampleVariables))
 
 useSeoMeta({
-  title: computed(() => form.name ? `${form.name} — Email Templates — Kush ATS` : 'Email Template — Kush ATS'),
+  title: computed(() => form.name ? `${form.name} — Email Templates — Kush Talents` : 'Email Template — Kush Talents'),
   robots: 'noindex, nofollow',
 })
 </script>

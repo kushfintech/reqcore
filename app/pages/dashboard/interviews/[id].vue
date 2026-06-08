@@ -25,8 +25,8 @@ const { interview, status: fetchStatus, error, updateInterview, deleteInterview,
 useSeoMeta({
   title: computed(() =>
     interview.value
-      ? `${interview.value.title} — Kush ATS`
-      : 'Interview — Kush ATS',
+      ? `${interview.value.title} — Kush Talents`
+      : 'Interview — Kush Talents',
   ),
   robots: 'noindex, nofollow',
 })

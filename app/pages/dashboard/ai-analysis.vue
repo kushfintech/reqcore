@@ -10,7 +10,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'AI Analysis — Kush ATS',
+  title: 'AI Analysis — Kush Talents',
   robots: 'noindex, nofollow',
 })
 

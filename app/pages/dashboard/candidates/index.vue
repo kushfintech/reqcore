@@ -7,7 +7,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Candidates — Kush ATS',
+  title: 'Candidates — Kush Talents',
   description: 'Manage your candidate pool',
 })
 

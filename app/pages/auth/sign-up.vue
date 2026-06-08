@@ -5,8 +5,8 @@ definePageMeta({
 });
 
 useSeoMeta({
-    title: "Sign Up — Kush ATS",
-    description: "Create your Kush ATS account",
+    title: "Sign Up — Kush Talents",
+    description: "Create your Kush Talents account",
     robots: "noindex, nofollow",
 });
 

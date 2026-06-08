@@ -21,7 +21,7 @@ const { formatPersonName } = useOrgSettings()
 const linkId = computed(() => route.params.id as string)
 
 useSeoMeta({
-  title: 'Link Details — Source Tracking — Kush ATS',
+  title: 'Link Details — Source Tracking — Kush Talents',
   description: 'Detailed analytics for a tracking link',
 })
 

@@ -10,7 +10,7 @@ import {
 definePageMeta({})
 
 useSeoMeta({
-  title: 'Team Members — Kush ATS',
+  title: 'Team Members — Kush Talents',
   description: 'Manage your team members and invitations',
 })
 

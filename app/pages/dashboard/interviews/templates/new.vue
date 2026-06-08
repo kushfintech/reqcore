@@ -9,7 +9,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'New Template — Email Templates — Kush ATS',
+  title: 'New Template — Email Templates — Kush Talents',
   description: 'Create a new interview invitation email template',
   robots: 'noindex, nofollow',
 })

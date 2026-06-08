@@ -4,7 +4,7 @@ import { Globe, Save, Check, Loader2 } from 'lucide-vue-next'
 definePageMeta({})
 
 useSeoMeta({
-  title: 'Localization Settings — Kush ATS',
+  title: 'Localization Settings — Kush Talents',
   description: 'Configure name display format and date format for your organization',
 })
 

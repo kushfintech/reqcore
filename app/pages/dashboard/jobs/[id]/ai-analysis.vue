@@ -17,7 +17,7 @@ const { job, status: jobFetchStatus, error: jobError, updateJob } = useJob(jobId
 
 useSeoMeta({
   title: computed(() =>
-    job.value ? `AI Analysis — ${job.value.title} — Kush ATS` : 'AI Analysis — Kush ATS',
+    job.value ? `AI Analysis — ${job.value.title} — Kush Talents` : 'AI Analysis — Kush Talents',
   ),
   robots: 'noindex, nofollow',
 })

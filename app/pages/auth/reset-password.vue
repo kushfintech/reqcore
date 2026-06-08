@@ -5,8 +5,8 @@ definePageMeta({
 });
 
 useSeoMeta({
-    title: "Reset Password — Kush ATS",
-    description: "Set a new password for your Kush ATS account",
+    title: "Reset Password — Kush Talents",
+    description: "Set a new password for your Kush Talents account",
     robots: "noindex, nofollow",
 });
 

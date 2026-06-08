@@ -7,8 +7,8 @@ definePageMeta({
 });
 
 useSeoMeta({
-    title: "Sign In — Kush ATS",
-    description: "Sign in to your Kush ATS account",
+    title: "Sign In — Kush Talents",
+    description: "Sign in to your Kush Talents account",
     robots: "noindex, nofollow",
 });
 

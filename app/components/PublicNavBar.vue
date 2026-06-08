@@ -21,14 +21,14 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
       >
         <img
           src="/eagle-mascot-logo-128.png"
-          alt="Kush ATS logo"
+          alt="Kush Talents logo"
           width="28"
           height="28"
           loading="eager"
           decoding="sync"
           class="h-7 w-7 object-contain"
         />
-        Kush ATS
+        Kush Talents
       </NuxtLink>
 
       <!-- Center nav links (desktop) -->

@@ -220,8 +220,8 @@ onUnmounted(() => {
             :to="localePath('/dashboard')"
             class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg no-underline hover:bg-surface-100/60 dark:hover:bg-surface-800/60 transition-colors mr-1 lg:mr-4"
           >
-            <img src="/eagle-mascot-logo.png" alt="Kush ATS logo" class="size-7 shrink-0 object-contain" />
-            <span class="text-[15px] font-bold text-surface-900 dark:text-surface-100 hidden sm:block tracking-tight">Kush ATS</span>
+            <img src="/eagle-mascot-logo.png" alt="Kush Talents logo" class="size-7 shrink-0 object-contain" />
+            <span class="text-[15px] font-bold text-surface-900 dark:text-surface-100 hidden sm:block tracking-tight">Kush Talents</span>
           </NuxtLink>
 
           <!-- Desktop nav links -->

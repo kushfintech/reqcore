@@ -7,7 +7,7 @@ import {
 definePageMeta({})
 
 useSeoMeta({
-  title: 'Account Settings — Kush ATS',
+  title: 'Account Settings — Kush Talents',
   description: 'Manage your personal account settings',
 })
 

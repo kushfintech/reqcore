@@ -530,7 +530,7 @@ watch([detailTab, timelineCandidateId], () => {
 
 useSeoMeta({
   title: computed(() =>
-    jobData.value ? `Pipeline — ${jobData.value.title} — Kush ATS` : 'Pipeline — Kush ATS',
+    jobData.value ? `Pipeline — ${jobData.value.title} — Kush Talents` : 'Pipeline — Kush Talents',
   ),
   robots: 'noindex, nofollow',
 })

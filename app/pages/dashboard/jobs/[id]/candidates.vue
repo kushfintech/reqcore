@@ -25,7 +25,7 @@ const { data: jobData, status: jobFetchStatus, error: jobError } = useFetch(
 
 useSeoMeta({
   title: computed(() =>
-    jobData.value ? `Table — ${jobData.value.title} — Kush ATS` : 'Table — Kush ATS',
+    jobData.value ? `Table — ${jobData.value.title} — Kush Talents` : 'Table — Kush Talents',
   ),
 })
 
