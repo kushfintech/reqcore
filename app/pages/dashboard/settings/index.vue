@@ -13,6 +13,9 @@ const { allowed: canUpdateOrg } = usePermission({ organization: ['update'] })
 const { allowed: canDeleteOrg } = usePermission({ organization: ['delete'] })
 const { track } = useTrack()
 
+/** Host the app is served on (e.g. "talents.kushfintech.com") — shown as the job-board URL prefix */
+const host = useRequestURL().host
+
 // ─────────────────────────────────────────────
 // Org name/slug editing
 // ─────────────────────────────────────────────
@@ -162,7 +165,7 @@ async function handleDeleteOrg() {
           </label>
           <div class="flex items-center rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 transition-colors">
             <span class="px-3 text-sm text-surface-400 dark:text-surface-500 select-none bg-surface-50 dark:bg-surface-800/50 border-r border-surface-200 dark:border-surface-700 py-2">
-              reqcore.com/
+              {{ host }}/
             </span>
             <input
               id="org-slug"
