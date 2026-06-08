@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { cpSync, existsSync } from "node:fs";
+import { join } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import { readEnvFlagOverrides } from "./shared/feature-flags";
 
@@ -268,6 +270,25 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    hooks: {
+      // pdfjs-dist (used by pdf-parse for resume text extraction) loads its
+      // cmaps / standard_fonts / iccs data at runtime via constructed file
+      // paths. Nitro's dependency tracer can't see those, so they get stripped
+      // from the build — making text extraction fail in production for any PDF
+      // whose fonts/encodings need them (it works in dev where full node_modules
+      // is present). Re-copy the complete package into the server output.
+      compiled(nitro: { options: { output: { serverDir: string } } }) {
+        const src = join(process.cwd(), "node_modules", "pdfjs-dist");
+        const dest = join(
+          nitro.options.output.serverDir,
+          "node_modules",
+          "pdfjs-dist",
+        );
+        if (existsSync(src)) {
+          cpSync(src, dest, { recursive: true });
+        }
+      },
+    },
     routeRules: {
       "/**": {
         headers: {
