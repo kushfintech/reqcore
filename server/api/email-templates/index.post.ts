@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
 
   const [created] = await db.insert(emailTemplate).values({
     organizationId: orgId,
+    category: body.category,
     name: body.name,
     subject: body.subject,
     body: body.body,

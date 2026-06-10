@@ -54,11 +54,14 @@ const allowedTransitions = computed(() => {
 
 const isTransitioning = ref(false)
 const showInterviewSidebar = ref(false)
+const showRejectionModal = ref(false)
 
 async function handleTransition(newStatus: string) {
   isTransitioning.value = true
   try {
     await updateApplication({ status: newStatus as any })
+    // Offer to send a rejection email when moving to the rejected stage
+    if (newStatus === 'rejected') showRejectionModal.value = true
   } catch (err: any) {
     if (handlePreviewReadOnlyError(err)) return
     toast.error('Failed to update status', { message: err.data?.statusMessage, statusCode: err.data?.statusCode })
@@ -445,6 +448,18 @@ onUnmounted(() => {
       :job-title="application.job.title"
       @close="showInterviewSidebar = false"
       @scheduled="showInterviewSidebar = false"
+    />
+
+    <!-- Rejection email modal (opened after moving to the rejected stage) -->
+    <RejectionEmailModal
+      v-if="showRejectionModal && application"
+      :application-id="applicationId"
+      :candidate-first-name="application.candidate.firstName"
+      :candidate-last-name="application.candidate.lastName"
+      :candidate-email="application.candidate.email"
+      :job-title="application.job.title"
+      @close="showRejectionModal = false"
+      @sent="showRejectionModal = false"
     />
   </Teleport>
 </template>

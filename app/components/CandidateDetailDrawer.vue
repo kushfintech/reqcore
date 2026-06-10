@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { X, ExternalLink, Mail, Phone, Calendar, Clock, Briefcase, FileText, Plus, Download, Eye, AlertTriangle } from 'lucide-vue-next'
+import { X, ExternalLink, Mail, Phone, Calendar, Clock, Briefcase, FileText, Plus, Download, Eye, AlertTriangle, Upload, Trash2, Loader2 } from 'lucide-vue-next'
 import { usePreviewReadOnly } from '~/composables/usePreviewReadOnly'
 
 const props = defineProps<{
@@ -42,7 +42,50 @@ function openScheduleInterview(app: { id: string; job: { title: string } }) {
 
 // ─── Documents ────────────────────────────────────────────────────────────────
 
-const { downloadDocument, getPreviewUrl } = useDocuments()
+const { downloadDocument, getPreviewUrl, uploadDocument, deleteDocument } = useDocuments()
+
+// Upload / delete state
+const fileInput = ref<HTMLInputElement | null>(null)
+const selectedDocType = ref<'resume' | 'cover_letter' | 'other'>('resume')
+const isUploading = ref(false)
+const uploadError = ref<string | null>(null)
+const deletingDocId = ref<string | null>(null)
+
+function triggerFileSelect() {
+  uploadError.value = null
+  fileInput.value?.click()
+}
+
+async function handleFileSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  uploadError.value = null
+  isUploading.value = true
+  try {
+    await uploadDocument(props.candidateId, file, selectedDocType.value)
+    await refresh()
+  } catch (err: any) {
+    uploadError.value = err.data?.statusMessage ?? err.statusMessage ?? 'Upload failed'
+  } finally {
+    isUploading.value = false
+    if (input) input.value = '' // allow re-selecting the same file
+  }
+}
+
+async function handleDeleteDoc(docId: string) {
+  if (!confirm('Delete this document? This cannot be undone.')) return
+  deletingDocId.value = docId
+  try {
+    await deleteDocument(docId, props.candidateId)
+    if (previewDocId.value === docId) closePreview()
+    await refresh()
+  } catch (err: any) {
+    toast.error('Failed to delete document', { message: err.data?.statusMessage })
+  } finally {
+    deletingDocId.value = null
+  }
+}
 
 // Preview state
 const showPreview = ref(false)
@@ -403,6 +446,43 @@ onUnmounted(() => {
 
               <!-- Document list -->
               <template v-else>
+                <!-- Upload controls -->
+                <div class="flex items-center justify-between gap-2 mb-3">
+                  <select
+                    v-model="selectedDocType"
+                    class="rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 px-2.5 py-1.5 text-sm text-surface-700 dark:text-surface-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    <option value="resume">Resume</option>
+                    <option value="cover_letter">Cover Letter</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <button
+                    :disabled="isUploading"
+                    class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-surface-300 dark:border-surface-600 px-3 py-1.5 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    @click="triggerFileSelect"
+                  >
+                    <Loader2 v-if="isUploading" class="size-3.5 animate-spin" />
+                    <Upload v-else class="size-3.5" />
+                    {{ isUploading ? 'Uploading…' : 'Add document' }}
+                  </button>
+                </div>
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  class="hidden"
+                  @change="handleFileSelected"
+                />
+
+                <!-- Upload error -->
+                <div
+                  v-if="uploadError"
+                  class="rounded-lg border border-danger-200 dark:border-danger-800 bg-danger-50 dark:bg-danger-950 p-3 text-sm text-danger-700 dark:text-danger-400 mb-3"
+                >
+                  {{ uploadError }}
+                  <button class="underline ml-1" @click="uploadError = null">Dismiss</button>
+                </div>
+
                 <div
                   v-if="!candidate.documents?.length"
                   class="rounded-lg border border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 p-8 text-center"
@@ -447,6 +527,15 @@ onUnmounted(() => {
                         @click="handleDownload(doc.id)"
                       >
                         <Download class="size-4" />
+                      </button>
+                      <button
+                        class="rounded-lg p-1.5 text-surface-400 hover:text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-950/40 transition-colors disabled:opacity-50"
+                        title="Delete"
+                        :disabled="deletingDocId === doc.id"
+                        @click="handleDeleteDoc(doc.id)"
+                      >
+                        <Loader2 v-if="deletingDocId === doc.id" class="size-4 animate-spin" />
+                        <Trash2 v-else class="size-4" />
                       </button>
                     </div>
                   </div>

@@ -661,3 +661,99 @@ function buildInterviewInvitationText(
     '─────────────────────────────',
   ].join('\n')
 }
+
+// ─────────────────────────────────────────────
+// Candidate rejection emails
+// ─────────────────────────────────────────────
+
+export interface RejectionEmailData {
+  candidateName: string
+  candidateFirstName: string
+  candidateLastName: string
+  candidateEmail: string
+  jobTitle: string
+  organizationName: string
+}
+
+/** Replace known {{variable}} placeholders in a rejection template. */
+export function renderRejectionTemplate(template: string, data: RejectionEmailData): string {
+  const variables: Record<string, string> = {
+    candidateName: data.candidateName,
+    candidateFirstName: data.candidateFirstName,
+    candidateLastName: data.candidateLastName,
+    candidateEmail: data.candidateEmail,
+    jobTitle: data.jobTitle,
+    organizationName: data.organizationName,
+  }
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
+    return key in variables ? variables[key]! : match
+  })
+}
+
+/**
+ * Send a rejection email to a candidate.
+ * Falls back to console.info when no email provider is configured.
+ */
+export async function sendRejectionEmail(params: {
+  subject: string
+  body: string
+  data: RejectionEmailData
+}): Promise<void> {
+  const renderedSubject = renderRejectionTemplate(params.subject, params.data)
+  const renderedBody = renderRejectionTemplate(params.body, params.data)
+
+  await sendEmail({
+    to: params.data.candidateEmail,
+    subject: renderedSubject,
+    html: buildRejectionHtml(renderedSubject, renderedBody, params.data),
+    text: renderedBody,
+    resendTags: [
+      { name: 'category', value: 'candidate-rejection' },
+    ],
+    logFallback:
+      `Rejection email → ${params.data.candidateEmail} | ` +
+      `Subject: ${renderedSubject} | Job: ${params.data.jobTitle}`,
+    errorCategory: 'email.rejection_send_failed',
+  })
+}
+
+function buildRejectionHtml(subject: string, bodyText: string, data: RejectionEmailData): string {
+  const bodyHtml = escapeHtml(bodyText).replace(/\n/g, '<br />')
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${escapeHtml(subject)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e4e4e7;">
+          <tr>
+            <td style="padding:32px 32px 24px;text-align:center;border-bottom:1px solid #f4f4f5;">
+              <h1 style="margin:0;font-size:20px;font-weight:600;color:#09090b;">${escapeHtml(data.organizationName)}</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <div style="font-size:14px;line-height:1.7;color:#3f3f46;">
+                ${bodyHtml}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 32px;text-align:center;border-top:1px solid #f4f4f5;background-color:#fafafa;">
+              <p style="margin:0;font-size:12px;color:#a1a1aa;">
+                Sent by ${escapeHtml(data.organizationName)} via Kush Talents
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
