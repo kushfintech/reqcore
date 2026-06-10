@@ -632,6 +632,29 @@ function onClickOutsideStatusMenu(e: MouseEvent) {
 onMounted(() => document.addEventListener('click', onClickOutsideStatusMenu))
 onUnmounted(() => document.removeEventListener('click', onClickOutsideStatusMenu))
 
+// ─── Rejection email (offered after moving a candidate to rejected) ──
+const showRejectionModal = ref(false)
+const rejectionTarget = ref<{
+  applicationId: string
+  firstName: string
+  lastName: string
+  email: string
+  jobTitle: string
+} | null>(null)
+
+/** Open the rejection email modal for the current candidate (manual trigger / resend). */
+function openRejectionModal() {
+  if (!currentSummary.value) return
+  rejectionTarget.value = {
+    applicationId: currentSummary.value.id,
+    firstName: currentSummary.value.candidateFirstName,
+    lastName: currentSummary.value.candidateLastName,
+    email: currentSummary.value.candidateEmail,
+    jobTitle: jobData.value?.title ?? '',
+  }
+  showRejectionModal.value = true
+}
+
 function isCurrentStatus(status: string) {
   return currentSummary.value?.status === status
 }
@@ -961,6 +984,19 @@ async function changeStatus(status: string) {
       from_stage: currentSummary.value.status,
       to_stage: status,
     })
+
+    // Capture the candidate before the list refresh shifts it out of view,
+    // then offer to send a rejection email.
+    if (status === 'rejected' && currentSummary.value) {
+      rejectionTarget.value = {
+        applicationId,
+        firstName: currentSummary.value.candidateFirstName,
+        lastName: currentSummary.value.candidateLastName,
+        email: currentSummary.value.candidateEmail,
+        jobTitle: jobData.value?.title ?? '',
+      }
+      showRejectionModal.value = true
+    }
 
     await refreshApps()
 
@@ -1620,6 +1656,14 @@ function closeDocPreview() {
                         <Loader2 v-if="isScoringIndividual" class="size-3 animate-spin" />
                         <Brain v-else class="size-3" />
                         {{ isScoringIndividual ? 'Scoring…' : (currentSummary.score != null ? 'Re-score' : 'Score Candidate') }}
+                      </button>
+                      <button
+                        class="inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium text-surface-500 hover:text-danger-600 hover:bg-danger-50 dark:text-surface-400 dark:hover:text-danger-400 dark:hover:bg-danger-950/40 transition-all duration-150"
+                        title="Send a rejection email to this candidate"
+                        @click="openRejectionModal"
+                      >
+                        <Mail class="size-3" />
+                        Send rejection
                       </button>
                       <TimelineDateLink :date="currentSummary.createdAt" class="inline-flex items-center gap-1 text-[11px] text-surface-400 dark:text-surface-500">
                         <Clock class="size-3" />
@@ -2489,6 +2533,19 @@ function closeDocPreview() {
       :teleport-target="teleportTarget"
       @close="showInterviewSidebar = false"
       @scheduled="handleInterviewScheduled"
+    />
+
+    <!-- Rejection email modal (opened after moving a candidate to rejected) -->
+    <RejectionEmailModal
+      v-if="showRejectionModal && rejectionTarget"
+      :application-id="rejectionTarget.applicationId"
+      :candidate-first-name="rejectionTarget.firstName"
+      :candidate-last-name="rejectionTarget.lastName"
+      :candidate-email="rejectionTarget.email"
+      :job-title="rejectionTarget.jobTitle"
+      :teleport-target="teleportTarget"
+      @close="showRejectionModal = false"
+      @sent="showRejectionModal = false"
     />
 
     <!-- Document Preview Modal -->

@@ -17,6 +17,16 @@ export const AVAILABLE_VARIABLES = [
   { key: '{{organizationName}}', desc: 'Your org name' },
 ] as const
 
+/** Variables available in rejection templates (no interview-specific fields). */
+export const REJECTION_VARIABLES = [
+  { key: '{{candidateName}}', desc: 'Full name' },
+  { key: '{{candidateFirstName}}', desc: 'First name' },
+  { key: '{{candidateLastName}}', desc: 'Last name' },
+  { key: '{{candidateEmail}}', desc: 'Email address' },
+  { key: '{{jobTitle}}', desc: 'Job title' },
+  { key: '{{organizationName}}', desc: 'Your org name' },
+] as const
+
 export function renderTemplatePreview(template: string, variables: Record<string, string>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
     return key in variables ? variables[key]! : match

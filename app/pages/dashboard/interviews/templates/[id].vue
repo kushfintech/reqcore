@@ -97,6 +97,7 @@ async function handleDuplicate() {
   isDuplicating.value = true
   try {
     const created = await createTemplate({
+      category: 'interview',
       name: `${form.name} (Copy)`,
       subject: form.subject,
       body: form.body,

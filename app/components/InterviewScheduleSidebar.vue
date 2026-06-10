@@ -3,7 +3,7 @@ import {
   X, Calendar, Clock, MapPin, Users, ChevronLeft, ChevronRight,
   Plus, AlertCircle, Mail, ChevronDown, RefreshCw, Globe,
   Send, UserPlus, Bell, Pencil, CheckCircle2, ExternalLink,
-  ArrowRight, Eye,
+  ArrowRight, Eye, Video,
 } from 'lucide-vue-next'
 import { SYSTEM_TEMPLATES } from '~/utils/system-templates'
 
@@ -48,6 +48,9 @@ const form = reactive({
   date: '',
   time: '10:00',
   duration: 60,
+  // Interview mode — chosen up front so the invitation email reflects it.
+  // Defaults to onsite (in_person).
+  type: 'in_person',
   location: '',
   notes: '',
   interviewers: [] as string[],
@@ -96,6 +99,7 @@ function toDateString(d: Date): string {
 
 onMounted(() => {
   form.title = `Interview — ${props.candidateName}`
+  form.type = 'in_person' // default mode = onsite
   calendarCustomization.eventTitle = `Interview — ${props.candidateName}`
   // Default date to tomorrow
   const tomorrow = new Date()
@@ -317,6 +321,7 @@ async function handleSubmit() {
         title: form.title.trim(),
         scheduledAt: scheduledDate.toISOString(),
         duration: form.duration,
+        type: form.type,
         location: form.location.trim() || undefined,
         notes: form.notes.trim() || undefined,
         interviewers: filteredInterviewers.length > 0 ? filteredInterviewers : undefined,
@@ -375,7 +380,8 @@ async function handleMoveToInterview() {
 
 <template>
   <Teleport :to="teleportTarget">
-    <div class="fixed inset-0 z-50 flex justify-end">
+    <!-- z-[70] keeps this above the ApplicationDetailDrawer (z-[60]) when opened from within it -->
+    <div class="fixed inset-0 z-[70] flex justify-end">
       <!-- Backdrop -->
       <Transition
         enter-active-class="transition duration-300 ease-out"
@@ -869,6 +875,26 @@ async function handleMoveToInterview() {
                   </option>
                 </select>
               </div>
+            </div>
+
+            <!-- Mode / Type -->
+            <div>
+              <label for="interview-type" class="block text-[13px] font-medium text-surface-700 dark:text-surface-300 mb-2">
+                <Video class="inline size-3.5 mr-1.5 -mt-0.5 text-surface-400" />
+                Interview mode
+              </label>
+              <select
+                id="interview-type"
+                v-model="form.type"
+                class="w-full rounded-xl border border-surface-200 dark:border-surface-700/80 bg-surface-50/50 dark:bg-surface-800/50 px-4 py-2.5 text-sm text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 focus:bg-white dark:focus:bg-surface-800 transition-all cursor-pointer"
+              >
+                <option value="in_person">Onsite (In Person)</option>
+                <option value="video">Video Call</option>
+                <option value="phone">Phone Call</option>
+                <option value="panel">Panel</option>
+                <option value="technical">Technical</option>
+                <option value="take_home">Take-Home</option>
+              </select>
             </div>
 
             <!-- Location -->

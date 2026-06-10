@@ -111,6 +111,7 @@ const allowedTransitions = computed(() => {
 })
 
 const isTransitioning = ref(false)
+const showRejectionModal = ref(false)
 
 async function handleTransition(newStatus: string) {
   isTransitioning.value = true
@@ -126,6 +127,8 @@ async function handleTransition(newStatus: string) {
     })
     await refresh()
     emit('updated')
+    // Offer to send a rejection email when moving to the rejected stage
+    if (newStatus === 'rejected') showRejectionModal.value = true
   } catch (err: any) {
     if (handlePreviewReadOnlyError(err)) return
     toast.error('Failed to update status', { message: err.data?.statusMessage, statusCode: err.data?.statusCode })
@@ -1113,6 +1116,18 @@ function formatInterviewDate(dateStr: string) {
     :job-title="application.job?.title ?? ''"
     @close="showScheduleSidebar = false"
     @scheduled="showScheduleSidebar = false"
+  />
+
+  <!-- Rejection email modal (opened after moving to the rejected stage) -->
+  <RejectionEmailModal
+    v-if="showRejectionModal && application"
+    :application-id="props.applicationId"
+    :candidate-first-name="application.candidate.firstName"
+    :candidate-last-name="application.candidate.lastName"
+    :candidate-email="application.candidate.email"
+    :job-title="application.job?.title ?? ''"
+    @close="showRejectionModal = false"
+    @sent="showRejectionModal = false"
   />
 
 

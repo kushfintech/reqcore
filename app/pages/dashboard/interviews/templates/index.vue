@@ -20,6 +20,11 @@ const localePath = useLocalePath()
 const { templates, status: fetchStatus, deleteTemplate } = useEmailTemplates()
 const { handlePreviewReadOnlyError } = usePreviewReadOnly()
 
+// This page manages interview templates only; rejection templates are managed
+// from the rejection email modal.
+const interviewSystemTemplates = computed(() => SYSTEM_TEMPLATES.filter(t => t.category === 'interview'))
+const interviewTemplates = computed(() => (templates.value ?? []).filter(t => t.category === 'interview'))
+
 const deletingId = ref<string | null>(null)
 const showDeleteConfirm = ref(false)
 const templateToDelete = ref<{ id: string; name: string } | null>(null)
@@ -89,7 +94,7 @@ async function handleDelete() {
       </div>
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <NuxtLink
-          v-for="t in SYSTEM_TEMPLATES"
+          v-for="t in interviewSystemTemplates"
           :key="t.id"
           :to="localePath(`/dashboard/interviews/templates/${t.id}`)"
           class="group relative rounded-xl border border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 p-5 transition-all duration-200 hover:border-brand-300 dark:hover:border-brand-800 hover:shadow-lg hover:shadow-brand-500/5 no-underline"
@@ -126,10 +131,10 @@ async function handleDelete() {
             Your Templates
           </h2>
           <span
-            v-if="templates && templates.length > 0"
+            v-if="interviewTemplates.length > 0"
             class="ml-1 inline-flex items-center justify-center rounded-full bg-surface-100 dark:bg-surface-800 px-2 py-0.5 text-[11px] font-semibold text-surface-500 dark:text-surface-400"
           >
-            {{ templates.length }}
+            {{ interviewTemplates.length }}
           </span>
         </div>
       </div>
@@ -142,7 +147,7 @@ async function handleDelete() {
 
       <!-- Empty state -->
       <div
-        v-else-if="!templates || templates.length === 0"
+        v-else-if="interviewTemplates.length === 0"
         class="rounded-xl border-2 border-dashed border-surface-200 dark:border-surface-800 bg-surface-50/50 dark:bg-surface-900/50 p-10 text-center"
       >
         <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-800">
@@ -166,7 +171,7 @@ async function handleDelete() {
       <!-- Template cards -->
       <div v-else class="space-y-3">
         <div
-          v-for="t in templates"
+          v-for="t in interviewTemplates"
           :key="t.id"
           class="group relative rounded-xl border border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 transition-all duration-200 hover:border-surface-300 dark:hover:border-surface-700 hover:shadow-md hover:shadow-surface-900/5"
         >

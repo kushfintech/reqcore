@@ -3,37 +3,39 @@ import {
   X, Mail, Send, ChevronDown, Eye, Pencil, FileText,
   Check, AlertCircle, Plus, Trash2, Save, Sparkles,
 } from 'lucide-vue-next'
-import type { Interview } from '~/composables/useInterviews'
-import type { EmailTemplate } from '~/composables/useEmailTemplates'
 
-const props = defineProps<{
-  interview: Interview
-}>()
+const props = withDefaults(defineProps<{
+  applicationId: string
+  candidateFirstName: string
+  candidateLastName: string
+  candidateEmail: string
+  jobTitle: string
+  teleportTarget?: string | HTMLElement
+}>(), {
+  teleportTarget: 'body',
+})
 
 const emit = defineEmits<{
   close: []
   sent: []
 }>()
 
-const { templates, createTemplate, deleteTemplate, sendInvitation } = useEmailTemplates()
+const { templates, createTemplate, deleteTemplate, sendRejection } = useEmailTemplates()
 const { formatPersonName } = useOrgSettings()
-
-// ─── System templates (from shared utility — auto-imported) ────
+const { activeOrg } = useCurrentOrg()
 
 // ─── State ────────────────────────────────────────────────────────
 type Tab = 'template' | 'custom' | 'manage'
 const activeTab = ref<Tab>('template')
-const selectedTemplateId = ref<string>('system-standard')
+const selectedTemplateId = ref<string>('system-rejection-standard')
 const showPreview = ref(false)
 const isSending = ref(false)
 const sendError = ref('')
 const sendSuccess = ref(false)
 
-// Custom email state
 const customSubject = ref('')
 const customBody = ref('')
 
-// New template form state
 const showNewTemplateForm = ref(false)
 const newTemplateName = ref('')
 const newTemplateSubject = ref('')
@@ -41,11 +43,11 @@ const newTemplateBody = ref('')
 const isSavingTemplate = ref(false)
 const templateSaveError = ref('')
 
-// ─── Computed ─────────────────────────────────────────────────────
-const myTemplates = computed(() => (templates.value ?? []).filter(t => t.category === 'interview'))
+// ─── Computed (rejection-category only) ───────────────────────────
+const myTemplates = computed(() => (templates.value ?? []).filter(t => t.category === 'rejection'))
 
 const allTemplates = computed(() => [
-  ...SYSTEM_TEMPLATES.filter(t => t.category === 'interview').map(t => ({ ...t, isSystem: true as const })),
+  ...SYSTEM_TEMPLATES.filter(t => t.category === 'rejection').map(t => ({ ...t, isSystem: true as const })),
   ...myTemplates.value.map(t => ({ ...t, isSystem: false as const })),
 ])
 
@@ -53,28 +55,12 @@ const selectedTemplate = computed(() =>
   allTemplates.value.find(t => t.id === selectedTemplateId.value),
 )
 
-const { activeOrg } = useCurrentOrg()
-
 const previewVariables: Record<string, string> = {
-  candidateName: `${props.interview.candidateFirstName} ${props.interview.candidateLastName}`,
-  candidateFirstName: props.interview.candidateFirstName,
-  candidateLastName: props.interview.candidateLastName,
-  candidateEmail: props.interview.candidateEmail,
-  jobTitle: props.interview.jobTitle,
-  interviewTitle: props.interview.title,
-  interviewDate: new Date(props.interview.scheduledAt).toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-  }),
-  interviewTime: new Date(props.interview.scheduledAt).toLocaleTimeString('en-US', {
-    hour: 'numeric', minute: '2-digit', hour12: true,
-  }),
-  interviewDuration: String(props.interview.duration),
-  interviewType: {
-    video: 'Video Call', phone: 'Phone Call', in_person: 'In Person',
-    technical: 'Technical Interview', panel: 'Panel Interview', take_home: 'Take-Home Assignment',
-  }[props.interview.type] ?? props.interview.type,
-  interviewLocation: props.interview.location ?? 'To be confirmed',
-  interviewers: props.interview.interviewers?.join(', ') ?? 'To be confirmed',
+  candidateName: `${props.candidateFirstName} ${props.candidateLastName}`,
+  candidateFirstName: props.candidateFirstName,
+  candidateLastName: props.candidateLastName,
+  candidateEmail: props.candidateEmail,
+  jobTitle: props.jobTitle,
   organizationName: activeOrg.value?.name ?? 'Your Organization',
 }
 
@@ -88,21 +74,27 @@ const previewBody = computed(() => {
   return selectedTemplate.value ? renderTemplatePreview(selectedTemplate.value.body, previewVariables) : ''
 })
 
+const canSend = computed(() => {
+  if (activeTab.value === 'custom') {
+    return customSubject.value.trim().length > 0 && customBody.value.trim().length > 0
+  }
+  return !!selectedTemplateId.value
+})
+
 // ─── Actions ──────────────────────────────────────────────────────
 async function handleSend() {
   sendError.value = ''
   isSending.value = true
-
   try {
     const payload = activeTab.value === 'custom'
       ? { customSubject: customSubject.value, customBody: customBody.value }
       : { templateId: selectedTemplateId.value }
 
-    await sendInvitation(props.interview.id, payload)
+    await sendRejection(props.applicationId, payload)
     sendSuccess.value = true
     setTimeout(() => emit('sent'), 1500)
   } catch (err: any) {
-    sendError.value = err?.data?.statusMessage ?? err?.message ?? 'Failed to send invitation email'
+    sendError.value = err?.data?.statusMessage ?? err?.message ?? 'Failed to send rejection email'
   } finally {
     isSending.value = false
   }
@@ -114,11 +106,10 @@ async function handleSaveTemplate() {
     templateSaveError.value = 'All fields are required'
     return
   }
-
   isSavingTemplate.value = true
   try {
     await createTemplate({
-      category: 'interview',
+      category: 'rejection',
       name: newTemplateName.value.trim(),
       subject: newTemplateSubject.value.trim(),
       body: newTemplateBody.value.trim(),
@@ -137,45 +128,33 @@ async function handleSaveTemplate() {
 async function handleDeleteTemplate(id: string) {
   try {
     await deleteTemplate(id)
-    if (selectedTemplateId.value === id) {
-      selectedTemplateId.value = 'system-standard'
-    }
+    if (selectedTemplateId.value === id) selectedTemplateId.value = 'system-rejection-standard'
   } catch {
-    // Handled by composable
+    // handled by composable
   }
 }
-
-const canSend = computed(() => {
-  if (activeTab.value === 'custom') {
-    return customSubject.value.trim().length > 0 && customBody.value.trim().length > 0
-  }
-  return !!selectedTemplateId.value
-})
-
-// Use AVAILABLE_VARIABLES from auto-imported ~/utils/system-templates
 </script>
 
 <template>
-  <Teleport to="body">
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
-      <!-- Backdrop -->
+  <Teleport :to="teleportTarget">
+    <!-- z-[70] keeps this above detail drawers (z-[60]) when opened from a stage change -->
+    <div class="fixed inset-0 z-[70] flex items-center justify-center">
       <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" @click="emit('close')" />
 
-      <!-- Modal -->
       <div class="relative bg-white dark:bg-surface-900 rounded-2xl shadow-2xl shadow-surface-900/10 dark:shadow-black/30 ring-1 ring-surface-200/80 dark:ring-surface-700/60 w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col overflow-hidden">
         <!-- Header -->
         <div class="shrink-0 border-b border-surface-200/80 dark:border-surface-800/60 px-4 sm:px-6 py-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-              <div class="flex size-9 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-950/40">
-                <Mail class="size-4.5 text-brand-600 dark:text-brand-400" />
+              <div class="flex size-9 items-center justify-center rounded-lg bg-danger-50 dark:bg-danger-950/40">
+                <Mail class="size-4.5 text-danger-600 dark:text-danger-400" />
               </div>
               <div>
                 <h2 class="text-base font-semibold text-surface-900 dark:text-surface-100">
-                  Send Interview Invitation
+                  Send Rejection Email
                 </h2>
                 <p class="text-xs text-surface-500 dark:text-surface-400">
-                  to {{ formatPersonName(interview.candidateFirstName, interview.candidateLastName) }} · {{ interview.candidateEmail }}
+                  to {{ formatPersonName(candidateFirstName, candidateLastName) }} · {{ candidateEmail }}
                 </p>
               </div>
             </div>
@@ -188,18 +167,17 @@ const canSend = computed(() => {
           </div>
         </div>
 
-        <!-- Success state -->
+        <!-- Success -->
         <div v-if="sendSuccess" class="flex-1 flex flex-col items-center justify-center py-12 px-6">
           <div class="flex size-14 items-center justify-center rounded-full bg-success-100 dark:bg-success-950/40 mb-4">
             <Check class="size-7 text-success-600 dark:text-success-400" />
           </div>
-          <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-1.5">Invitation Sent!</h3>
+          <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-1.5">Rejection Sent</h3>
           <p class="text-sm text-surface-500 dark:text-surface-400 text-center">
-            The interview invitation has been sent to {{ interview.candidateEmail }}.
+            The rejection email has been sent to {{ candidateEmail }}.
           </p>
         </div>
 
-        <!-- Main content -->
         <template v-else>
           <!-- Tabs -->
           <div class="shrink-0 border-b border-surface-200/80 dark:border-surface-800/60 px-4 sm:px-6 overflow-x-auto scrollbar-none">
@@ -229,12 +207,11 @@ const canSend = computed(() => {
             {{ sendError }}
           </div>
 
-          <!-- Tab content -->
           <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
-            <!-- Template Selection Tab -->
+            <!-- Choose Template -->
             <div v-if="activeTab === 'template'" class="space-y-3">
               <p class="text-xs text-surface-500 dark:text-surface-400 mb-3">
-                Select a template to send the interview invitation.
+                Select a template to send the rejection email.
               </p>
               <button
                 v-for="t in allTemplates"
@@ -257,7 +234,6 @@ const canSend = computed(() => {
                 </p>
               </button>
 
-              <!-- Preview toggle -->
               <div v-if="selectedTemplate" class="mt-4">
                 <button
                   type="button"
@@ -266,10 +242,7 @@ const canSend = computed(() => {
                 >
                   <Eye class="size-3.5" />
                   {{ showPreview ? 'Hide Preview' : 'Show Preview' }}
-                  <ChevronDown
-                    class="size-3.5 transition-transform"
-                    :class="showPreview ? 'rotate-180' : ''"
-                  />
+                  <ChevronDown class="size-3.5 transition-transform" :class="showPreview ? 'rotate-180' : ''" />
                 </button>
                 <div v-if="showPreview" class="mt-3 rounded-xl border border-surface-200 dark:border-surface-700/80 bg-surface-50 dark:bg-surface-800/40 p-4">
                   <div class="mb-2">
@@ -284,40 +257,38 @@ const canSend = computed(() => {
               </div>
             </div>
 
-            <!-- Custom Email Tab -->
+            <!-- Custom Email -->
             <div v-else-if="activeTab === 'custom'" class="space-y-4">
               <div>
-                <label for="custom-subject" class="block text-xs font-semibold uppercase tracking-wider text-surface-500 dark:text-surface-400 mb-1.5">
+                <label for="rej-custom-subject" class="block text-xs font-semibold uppercase tracking-wider text-surface-500 dark:text-surface-400 mb-1.5">
                   Subject Line
                 </label>
                 <input
-                  id="custom-subject"
+                  id="rej-custom-subject"
                   v-model="customSubject"
                   type="text"
-                  placeholder="e.g., Interview Invitation: {{jobTitle}}"
+                  placeholder="e.g., Update on your application for {{jobTitle}}"
                   class="w-full rounded-lg border border-surface-200 dark:border-surface-700 px-3 py-2.5 text-sm text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 placeholder:text-surface-400 dark:placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all"
                 />
               </div>
-
               <div>
-                <label for="custom-body" class="block text-xs font-semibold uppercase tracking-wider text-surface-500 dark:text-surface-400 mb-1.5">
+                <label for="rej-custom-body" class="block text-xs font-semibold uppercase tracking-wider text-surface-500 dark:text-surface-400 mb-1.5">
                   Email Body
                 </label>
                 <textarea
-                  id="custom-body"
+                  id="rej-custom-body"
                   v-model="customBody"
                   rows="10"
-                  placeholder="Write your invitation email here. Use {{variables}} for dynamic content..."
+                  placeholder="Write your rejection email here. Use {{variables}} for dynamic content..."
                   class="w-full rounded-lg border border-surface-200 dark:border-surface-700 px-3 py-2.5 text-sm text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 placeholder:text-surface-400 dark:placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all resize-none font-mono"
                 />
               </div>
 
-              <!-- Variable reference -->
               <div class="rounded-xl border border-surface-200/60 dark:border-surface-700/40 bg-surface-50 dark:bg-surface-800/30 p-3.5">
                 <p class="text-[10px] uppercase tracking-wider font-semibold text-surface-400 mb-2">Available Variables</p>
                 <div class="flex flex-wrap gap-1.5">
                   <span
-                    v-for="v in AVAILABLE_VARIABLES"
+                    v-for="v in REJECTION_VARIABLES"
                     :key="v.key"
                     class="inline-flex items-center gap-1 rounded-md bg-brand-50 dark:bg-brand-950/30 px-2 py-1 text-[11px] font-mono text-brand-700 dark:text-brand-300"
                     :title="v.desc"
@@ -327,7 +298,6 @@ const canSend = computed(() => {
                 </div>
               </div>
 
-              <!-- Preview -->
               <div v-if="customSubject || customBody">
                 <button
                   type="button"
@@ -350,11 +320,11 @@ const canSend = computed(() => {
               </div>
             </div>
 
-            <!-- Manage Templates Tab -->
+            <!-- Manage Templates -->
             <div v-else-if="activeTab === 'manage'" class="space-y-4">
               <div class="flex items-center justify-between">
                 <p class="text-xs text-surface-500 dark:text-surface-400">
-                  Create and manage reusable email templates for your organization.
+                  Create and manage reusable rejection templates for your organization.
                 </p>
                 <button
                   v-if="!showNewTemplateForm"
@@ -367,9 +337,8 @@ const canSend = computed(() => {
                 </button>
               </div>
 
-              <!-- New template form -->
               <div v-if="showNewTemplateForm" class="rounded-xl border border-brand-200 dark:border-brand-800/60 bg-brand-50/30 dark:bg-brand-950/20 p-4 space-y-3">
-                <h4 class="text-sm font-semibold text-surface-800 dark:text-surface-200">Create Template</h4>
+                <h4 class="text-sm font-semibold text-surface-800 dark:text-surface-200">Create Rejection Template</h4>
                 <div v-if="templateSaveError" class="rounded-lg border border-danger-200 bg-danger-50 p-2.5 text-xs text-danger-700 dark:border-danger-800 dark:bg-danger-950/40 dark:text-danger-300">
                   {{ templateSaveError }}
                 </div>
@@ -411,9 +380,8 @@ const canSend = computed(() => {
                 </div>
               </div>
 
-              <!-- Existing custom templates -->
               <div v-if="myTemplates.length > 0" class="space-y-2">
-                <h4 class="text-xs font-semibold uppercase tracking-wider text-surface-400 mb-2">Your Templates</h4>
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-surface-400 mb-2">Your Rejection Templates</h4>
                 <div
                   v-for="t in myTemplates"
                   :key="t.id"
@@ -434,16 +402,15 @@ const canSend = computed(() => {
               </div>
 
               <div v-else-if="!showNewTemplateForm" class="text-center py-6">
-                <p class="text-sm text-surface-400 dark:text-surface-500">No custom templates yet.</p>
-                <p class="text-xs text-surface-400 dark:text-surface-500 mt-1">Create one to reuse across interview invitations.</p>
+                <p class="text-sm text-surface-400 dark:text-surface-500">No custom rejection templates yet.</p>
+                <p class="text-xs text-surface-400 dark:text-surface-500 mt-1">Create one to reuse across rejections.</p>
               </div>
 
-              <!-- Variable reference -->
               <div class="rounded-xl border border-surface-200/60 dark:border-surface-700/40 bg-surface-50 dark:bg-surface-800/30 p-3.5">
                 <p class="text-[10px] uppercase tracking-wider font-semibold text-surface-400 mb-2">Available Variables</p>
                 <div class="flex flex-wrap gap-1.5">
                   <span
-                    v-for="v in AVAILABLE_VARIABLES"
+                    v-for="v in REJECTION_VARIABLES"
                     :key="v.key"
                     class="inline-flex items-center gap-1 rounded-md bg-brand-50 dark:bg-brand-950/30 px-2 py-1 text-[11px] font-mono text-brand-700 dark:text-brand-300"
                     :title="v.desc"
@@ -463,16 +430,16 @@ const canSend = computed(() => {
                 class="flex-1 rounded-xl border border-surface-200 dark:border-surface-700 px-4 py-2.5 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-all cursor-pointer"
                 @click="emit('close')"
               >
-                Cancel
+                Skip — don't email
               </button>
               <button
                 type="button"
                 :disabled="!canSend || isSending"
-                class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm shadow-brand-500/20"
+                class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-danger-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-danger-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm shadow-danger-500/20"
                 @click="handleSend"
               >
                 <Send class="size-4" />
-                {{ isSending ? 'Sending…' : 'Send Invitation' }}
+                {{ isSending ? 'Sending…' : 'Send Rejection' }}
               </button>
             </div>
           </div>

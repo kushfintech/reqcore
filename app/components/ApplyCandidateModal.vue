@@ -63,7 +63,8 @@ async function applyCandidate(candidateId: string) {
 
 <template>
   <Teleport :to="teleportTarget">
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <!-- z-[70] keeps this above detail drawers (z-[60]) when opened from within one -->
+    <div class="fixed inset-0 z-[70] flex items-center justify-center">
       <div class="absolute inset-0 bg-black/50" @click="emit('close')" />
       <div class="relative bg-white dark:bg-surface-900 rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[80vh] flex flex-col">
         <!-- Header -->

@@ -424,9 +424,13 @@ export const interview = pgTable('interview', {
  * Each org can create custom templates or use the system defaults.
  * Template body supports placeholder variables like {{candidateName}}, {{jobTitle}}, etc.
  */
+export const templateCategoryEnum = pgEnum('template_category', ['interview', 'rejection'])
+
 export const emailTemplate = pgTable('email_template', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
+  /** Which workflow this template is for: interview invitations or candidate rejections. */
+  category: templateCategoryEnum('category').notNull().default('interview'),
   name: text('name').notNull(),
   subject: text('subject').notNull(),
   body: text('body').notNull(),

@@ -66,6 +66,7 @@ async function handleCreate() {
   isSaving.value = true
   try {
     const created = await createTemplate({
+      category: 'interview',
       name: form.name.trim(),
       subject: form.subject.trim(),
       body: form.body.trim(),
