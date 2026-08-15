@@ -173,6 +173,11 @@ const applicationForm = ref({
   questions: [] as DraftQuestion[],
 })
 
+const aiQuestionGenerationState = ref<'idle' | 'running' | 'done' | 'failed' | 'unavailable'>('idle')
+const aiQuestionGenerationError = ref<string | null>(null)
+const aiQuestionImportState = ref<'idle' | 'running' | 'done' | 'failed' | 'unavailable'>('idle')
+const aiQuestionImportError = ref<string | null>(null)
+
 // Step 3: AI scoring criteria
 type ScoringCriterionDraft = {
   key: string
@@ -547,6 +552,171 @@ const isAiConfigured = computed(() => {
   return Array.isArray(aiConfigData.value) && aiConfigData.value.some((c) => c.hasApiKey)
 })
 
+type GeneratedQuestionResponse = {
+  questions: Array<{
+    label: string
+    type: QuestionType
+    description: string | null
+    required: boolean
+    options: string[] | null
+  }>
+}
+
+type AiQuestionGenerationMode = 'fill_gaps' | 'replace'
+
+/**
+ * Draft the application questions once, while step 2 is open. Existing or
+ * restored questions always win: a background AI response must never replace
+ * work the recruiter has already done.
+ */
+async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace', showFailure = true) {
+  if (aiQuestionGenerationState.value === 'running' || aiQuestionImportState.value === 'running') return
+
+  if (applicationForm.value.questions.length > 0) {
+    // Automatic drafting must never overwrite restored or recruiter-written
+    // questions. A deliberate click chooses whether to add gaps or replace.
+    if (!showFailure) return
+  }
+
+  const { title, description } = form.value
+  if (!title || !description) return
+
+  aiQuestionGenerationState.value = 'running'
+  aiQuestionGenerationError.value = null
+  try {
+    const existingQuestions = applicationForm.value.questions.map(question => ({
+      label: question.label,
+      type: question.type,
+      description: question.description ?? null,
+      required: question.required,
+      options: question.options ?? null,
+    }))
+    const hadExistingQuestions = existingQuestions.length > 0
+    const result = await $fetch<GeneratedQuestionResponse>('/api/ai-config/generate-questions', {
+      method: 'POST',
+      body: {
+        title,
+        description,
+        mode,
+        existingQuestions: mode === 'fill_gaps' ? existingQuestions : [],
+      },
+    })
+
+    const generated = result.questions.map(question => ({
+      id: crypto.randomUUID(),
+      label: question.label,
+      type: question.type,
+      description: question.description,
+      required: question.required,
+      options: question.options,
+    }))
+
+    if (generated.length === 0) {
+      if (mode === 'fill_gaps') {
+        aiQuestionGenerationState.value = 'done'
+        toast.info('No missing questions found', 'Your current questions already cover the meaningful requirements in the job description.')
+        return
+      }
+      throw new Error('No questions passed the safety checks')
+    }
+
+    let appliedQuestionCount = generated.length
+    if (mode === 'fill_gaps') {
+      const existingLabels = new Set(applicationForm.value.questions.map(question =>
+        question.label.trim().toLocaleLowerCase().replace(/\s+/g, ' '),
+      ))
+      const additions = generated.filter(question =>
+        !existingLabels.has(question.label.trim().toLocaleLowerCase().replace(/\s+/g, ' ')),
+      ).slice(0, Math.max(0, 50 - applicationForm.value.questions.length))
+      applicationForm.value.questions = [...applicationForm.value.questions, ...additions]
+      appliedQuestionCount = additions.length
+      if (additions.length > 0) {
+        toast.success(`${additions.length} missing ${additions.length === 1 ? 'question' : 'questions'} added`)
+      }
+      else {
+        toast.info('No missing questions found', 'Your current questions already cover the meaningful requirements in the job description.')
+      }
+    }
+    else {
+      applicationForm.value.questions = generated
+      if (showFailure) {
+        toast.success(
+          hadExistingQuestions ? 'Screening questions replaced' : 'Screening questions generated',
+          `${generated.length} new questions generated from the job description.`,
+        )
+      }
+    }
+    aiQuestionGenerationState.value = 'done'
+    track('ai_screening_questions_generated', { question_count: appliedQuestionCount, auto: !showFailure, mode })
+  }
+  catch (err: any) {
+    const statusCode = err?.data?.statusCode ?? err?.statusCode
+    const statusMessage = err?.data?.statusMessage ?? err?.statusMessage ?? err?.message
+    const providerUnavailable = statusCode === 422 && /provider|openrouter|ai is not available|removed/i.test(statusMessage ?? '')
+    aiQuestionGenerationState.value = providerUnavailable ? 'unavailable' : 'failed'
+    aiQuestionGenerationError.value = providerUnavailable
+      ? 'No AI provider is available. Configure one in Settings → AI, then try again.'
+      : 'No questions were added. Try again, or add questions manually.'
+    if (showFailure) {
+      toast.error('Failed to generate questions', {
+        message: aiQuestionGenerationError.value,
+        details: statusMessage || `${statusCode ?? 'Unknown'} error — no additional details from server.`,
+        statusCode,
+      })
+    }
+  }
+}
+
+async function importAiQuestions(sourceText: string) {
+  if (aiQuestionImportState.value === 'running' || aiQuestionGenerationState.value === 'running') return
+
+  aiQuestionImportState.value = 'running'
+  aiQuestionImportError.value = null
+
+  try {
+    const result = await $fetch<GeneratedQuestionResponse>('/api/ai-config/import-questions', {
+      method: 'POST',
+      body: { sourceText },
+    })
+    const imported = result.questions.map(question => ({
+      id: crypto.randomUUID(),
+      label: question.label,
+      type: question.type,
+      description: question.description,
+      required: question.required,
+      options: question.options,
+    }))
+
+    if (imported.length === 0) throw new Error('No questions were identified in the pasted text')
+    applicationForm.value.questions = imported
+    aiQuestionGenerationState.value = 'idle'
+    aiQuestionGenerationError.value = null
+    aiQuestionImportState.value = 'done'
+    track('ai_screening_questions_imported', { question_count: imported.length })
+    toast.success(`${imported.length} screening ${imported.length === 1 ? 'question' : 'questions'} created`)
+  }
+  catch (err: any) {
+    const statusCode = err?.data?.statusCode ?? err?.statusCode
+    const statusMessage = err?.data?.statusMessage ?? err?.statusMessage ?? err?.message
+    const providerUnavailable = statusCode === 422 && /provider|openrouter|ai is not available|removed/i.test(statusMessage ?? '')
+    aiQuestionImportState.value = providerUnavailable ? 'unavailable' : 'failed'
+    aiQuestionImportError.value = providerUnavailable
+      ? 'No AI provider is available. Configure one in Settings → AI, then try again.'
+      : 'No questions were changed. Check the pasted text and try again.'
+    toast.error('Failed to import questions', {
+      message: aiQuestionImportError.value,
+      details: statusMessage || `${statusCode ?? 'Unknown'} error — no additional details from server.`,
+      statusCode,
+    })
+  }
+}
+
+watch(currentStep, (step) => {
+  if (step === 2 && aiQuestionGenerationState.value === 'idle') {
+    generateAiQuestions('replace', false)
+  }
+}, { immediate: true, flush: 'post' })
+
 /**
  * Whether publishing also syndicates this role to the external job boards.
  *
@@ -768,6 +938,10 @@ function resetFormState() {
     requireCoverLetter: false,
     questions: [],
   }
+  aiQuestionGenerationState.value = 'idle'
+  aiQuestionGenerationError.value = null
+  aiQuestionImportState.value = 'idle'
+  aiQuestionImportError.value = null
   scoringCriteria.value = []
   scoringMode.value = 'none'
   autoScoreOnApply.value = true
@@ -1583,6 +1757,12 @@ const typeOptions = [
                 v-model="applicationForm"
                 :job-title="form.title"
                 :show-preview="false"
+                :ai-question-generation-state="isTestMode ? undefined : aiQuestionGenerationState"
+                :ai-question-generation-error="aiQuestionGenerationError"
+                :ai-question-import-state="aiQuestionImportState"
+                :ai-question-import-error="aiQuestionImportError"
+                @generate-ai-questions="generateAiQuestions($event, true)"
+                @import-ai-questions="importAiQuestions"
               />
 
               <!--
@@ -2321,6 +2501,14 @@ const typeOptions = [
                   class="px-6 py-2.5 text-sm font-medium text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-900 border border-surface-300 dark:border-surface-700 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
                 >
                   Back
+                </button>
+                <button
+                  v-if="currentStep === 3"
+                  type="button"
+                  @click="skipScoring"
+                  class="px-6 py-2.5 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 rounded-lg transition-colors"
+                >
+                  Skip for now
                 </button>
                 <button
                   v-if="currentStep < 4"

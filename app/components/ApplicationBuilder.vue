@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {
   Lock, Upload, FileText, GripVertical, Plus, Pencil, Trash2,
-  ChevronUp, ChevronDown, Zap,
+  Zap, Sparkles, Loader2, ShieldCheck, ClipboardPaste,
 } from 'lucide-vue-next'
 
 /**
@@ -57,6 +57,8 @@ type QuestionInput = {
   options?: string[]
 }
 
+type AiQuestionGenerationMode = 'fill_gaps' | 'replace'
+
 const props = defineProps<{
   /** Optional job title, shown as context above the preview. */
   jobTitle?: string
@@ -64,11 +66,26 @@ const props = defineProps<{
   operations?: BuilderOperations
   /** The create-job wizard renders its preview in a persistent side panel. */
   showPreview?: boolean
+  /** Present only when the parent supports AI question generation. */
+  aiQuestionGenerationState?: 'idle' | 'running' | 'done' | 'failed' | 'unavailable'
+  aiQuestionGenerationError?: string | null
+  aiQuestionImportState?: 'idle' | 'running' | 'done' | 'failed' | 'unavailable'
+  aiQuestionImportError?: string | null
+}>()
+
+const emit = defineEmits<{
+  generateAiQuestions: [mode: AiQuestionGenerationMode]
+  importAiQuestions: [sourceText: string]
 }>()
 
 const model = defineModel<ApplicationForm>({ required: true })
 
 const busy = ref(false)
+const showQuestionGenerationModeModal = ref(false)
+const showQuestionImportModal = ref(false)
+const aiActionRunning = computed(() =>
+  props.aiQuestionGenerationState === 'running' || props.aiQuestionImportState === 'running',
+)
 
 const questionTypeLabels: Record<QuestionType, string> = {
   short_text: 'Short Text',
@@ -94,6 +111,8 @@ const phoneRequirementOptions = [
 const showAddForm = ref(false)
 const editingQuestion = ref<DraftQuestion | null>(null)
 const questionActionError = ref<string | null>(null)
+const draggedQuestionId = ref<string | null>(null)
+const questionDropTarget = ref<{ id: string; position: 'before' | 'after' } | null>(null)
 let nextQuestionId = 0
 
 function newDraftId() {
@@ -115,6 +134,19 @@ function startEdit(q: DraftQuestion) {
   editingQuestion.value = q
   showAddForm.value = false
   questionActionError.value = null
+}
+
+function requestAiQuestions() {
+  if (model.value.questions.length > 0) {
+    showQuestionGenerationModeModal.value = true
+    return
+  }
+  emit('generateAiQuestions', 'replace')
+}
+
+function selectAiQuestionGenerationMode(mode: AiQuestionGenerationMode) {
+  showQuestionGenerationModeModal.value = false
+  emit('generateAiQuestions', mode)
 }
 
 /** Run a delegated persistence handler, surfacing failures inline. */
@@ -186,19 +218,65 @@ async function handleDeleteQuestion(questionId: string) {
   questionActionError.value = null
 }
 
-function moveQuestion(index: number, direction: 'up' | 'down') {
-  const list = model.value.questions
-  const target = direction === 'up' ? index - 1 : index + 1
-  if (target < 0 || target >= list.length) return
-  if (props.operations) {
-    // Compute the post-swap order and persist; the parent syncs the model back.
-    const reordered = [...list]
-    ;[reordered[index], reordered[target]] = [reordered[target]!, reordered[index]!]
-    const order = reordered.map((q, i) => ({ id: q.id, displayOrder: i }))
-    runOp(() => props.operations!.reorderQuestions(order))
+function questionDropPosition(event: DragEvent): 'before' | 'after' {
+  const row = event.currentTarget as HTMLElement | null
+  if (!row) return 'before'
+  const bounds = row.getBoundingClientRect()
+  return event.clientY < bounds.top + bounds.height / 2 ? 'before' : 'after'
+}
+
+function handleQuestionDragStart(event: DragEvent, questionId: string) {
+  if (busy.value || !event.dataTransfer) {
+    event.preventDefault()
     return
   }
-  ;[list[index], list[target]] = [list[target]!, list[index]!]
+  draggedQuestionId.value = questionId
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', questionId)
+}
+
+function handleQuestionDragOver(event: DragEvent, questionId: string) {
+  event.preventDefault()
+  if (!draggedQuestionId.value || draggedQuestionId.value === questionId) {
+    questionDropTarget.value = null
+    return
+  }
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  questionDropTarget.value = { id: questionId, position: questionDropPosition(event) }
+}
+
+function handleQuestionDragEnd() {
+  draggedQuestionId.value = null
+  questionDropTarget.value = null
+}
+
+async function handleQuestionDrop(event: DragEvent, targetQuestionId: string) {
+  event.preventDefault()
+  const sourceQuestionId = draggedQuestionId.value ?? event.dataTransfer?.getData('text/plain')
+  const position = questionDropPosition(event)
+  handleQuestionDragEnd()
+  if (!sourceQuestionId || sourceQuestionId === targetQuestionId) return
+
+  const previousQuestions = [...model.value.questions]
+  const reorderedQuestions = [...previousQuestions]
+  const sourceIndex = reorderedQuestions.findIndex((question) => question.id === sourceQuestionId)
+  if (sourceIndex === -1) return
+
+  const [movedQuestion] = reorderedQuestions.splice(sourceIndex, 1)
+  if (!movedQuestion) return
+  const targetIndex = reorderedQuestions.findIndex((question) => question.id === targetQuestionId)
+  if (targetIndex === -1) return
+  reorderedQuestions.splice(position === 'after' ? targetIndex + 1 : targetIndex, 0, movedQuestion)
+
+  if (reorderedQuestions.every((question, index) => question.id === previousQuestions[index]?.id)) return
+  model.value.questions = reorderedQuestions
+  questionActionError.value = null
+
+  if (!props.operations) return
+  const order = reorderedQuestions.map((question, index) => ({ id: question.id, displayOrder: index }))
+  if (!await runOp(() => props.operations!.reorderQuestions(order))) {
+    model.value.questions = previousQuestions
+  }
 }
 
 function setRequireResume(value: boolean) {
@@ -399,11 +477,67 @@ function handleEditField(field: string) {
 
       <!-- Screening questions -->
       <div ref="questionsAnchor">
-        <div class="flex items-center justify-between pb-3 border-b border-surface-100 dark:border-surface-800">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-surface-100 dark:border-surface-800">
           <h2 class="text-base font-semibold text-surface-900 dark:text-surface-100">Screening questions</h2>
-          <span v-if="model.questions.length > 0" class="text-xs font-medium text-surface-400 dark:text-surface-500 tabular-nums">
-            {{ model.questions.length }} {{ model.questions.length === 1 ? 'question' : 'questions' }} added
-          </span>
+          <div class="flex items-center gap-3">
+            <span
+              v-if="aiActionRunning"
+              class="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-400"
+            >
+              <Loader2 class="size-3.5 animate-spin" />
+              <template v-if="props.aiQuestionImportState === 'running'">Analyzing pasted questions…</template>
+              <template v-else>Writing from job description…</template>
+            </span>
+            <span v-else-if="model.questions.length > 0" class="text-xs font-medium text-surface-400 dark:text-surface-500 tabular-nums">
+              {{ model.questions.length }} {{ model.questions.length === 1 ? 'question' : 'questions' }} added
+            </span>
+            <button
+              v-if="props.aiQuestionGenerationState"
+              type="button"
+              :disabled="aiActionRunning || busy"
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-brand-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-brand-800 dark:bg-surface-900 dark:text-brand-300 dark:hover:bg-brand-950/50"
+              @click="requestAiQuestions"
+            >
+              <Loader2 v-if="props.aiQuestionGenerationState === 'running'" class="size-3.5 animate-spin" />
+              <Sparkles v-else class="size-3.5" />
+              <template v-if="props.aiQuestionGenerationState === 'running'">Generating…</template>
+              <template v-else-if="props.aiQuestionGenerationState === 'failed' || props.aiQuestionGenerationState === 'unavailable'">Try again</template>
+              <template v-else-if="model.questions.length > 0">Regenerate with AI</template>
+              <template v-else>Generate with AI</template>
+            </button>
+            <button
+              v-if="props.aiQuestionGenerationState"
+              type="button"
+              :disabled="props.aiQuestionImportState === 'running' || busy"
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-surface-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-surface-700 transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-60 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-300 dark:hover:border-brand-800 dark:hover:bg-brand-950/50 dark:hover:text-brand-300"
+              @click="showQuestionImportModal = true"
+            >
+              <ClipboardPaste class="size-3.5" />
+              Paste existing
+            </button>
+          </div>
+        </div>
+
+        <div
+          v-if="props.aiQuestionGenerationState && (props.aiQuestionGenerationState !== 'idle' || model.questions.length === 0)"
+          class="mt-4 rounded-lg border border-brand-100 bg-brand-50/60 p-3 dark:border-brand-900 dark:bg-brand-950/30"
+        >
+          <div class="flex items-start gap-2.5">
+            <ShieldCheck class="mt-0.5 size-4 shrink-0 text-brand-600 dark:text-brand-400" />
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-medium text-surface-700 dark:text-surface-300">
+                <template v-if="props.aiQuestionGenerationState === 'running'">AI is drafting role-related questions.</template>
+                <template v-else-if="props.aiQuestionGenerationState === 'done'">AI drafted these questions from the job description.</template>
+                <template v-else-if="props.aiQuestionGenerationState === 'failed'">AI couldn't draft safe questions this time.</template>
+                <template v-else-if="props.aiQuestionGenerationState === 'unavailable'">AI question drafting needs an AI provider.</template>
+                <template v-else>AI can draft questions from the job description.</template>
+              </p>
+              <p class="mt-1 text-xs leading-relaxed text-surface-500 dark:text-surface-400">
+                <template v-if="props.aiQuestionGenerationError">{{ props.aiQuestionGenerationError }}</template>
+                <template v-else>Safety filters are designed to exclude protected or sensitive traits. Laws vary by jurisdiction, so review every draft before publishing.</template>
+              </p>
+            </div>
+          </div>
         </div>
 
         <div
@@ -416,13 +550,30 @@ function handleEditField(field: string) {
 
         <div v-if="model.questions.length > 0" class="divide-y divide-surface-100 dark:divide-surface-800">
           <div
-            v-for="(q, index) in model.questions"
+            v-for="q in model.questions"
             :key="q.id"
-            class="flex items-center gap-3 py-3.5 px-1 group"
+            class="relative flex items-center gap-3 py-3.5 px-1 group transition-opacity"
+            :class="{ 'opacity-50': draggedQuestionId === q.id }"
+            @dragover="handleQuestionDragOver($event, q.id)"
+            @drop="handleQuestionDrop($event, q.id)"
           >
-            <div class="text-surface-300 dark:text-surface-600 cursor-grab">
+            <div
+              v-if="questionDropTarget?.id === q.id"
+              class="pointer-events-none absolute inset-x-0 z-10 h-0.5 rounded-full bg-brand-500"
+              :class="questionDropTarget.position === 'before' ? 'top-0' : 'bottom-0'"
+            />
+            <button
+              type="button"
+              :draggable="!busy"
+              class="cursor-grab rounded p-1 text-surface-300 hover:bg-surface-100 hover:text-surface-500 active:cursor-grabbing disabled:cursor-not-allowed dark:text-surface-600 dark:hover:bg-surface-800 dark:hover:text-surface-400"
+              :disabled="busy"
+              aria-label="Drag to reorder question"
+              title="Drag to reorder"
+              @dragstart="handleQuestionDragStart($event, q.id)"
+              @dragend="handleQuestionDragEnd"
+            >
               <GripVertical class="size-4" />
-            </div>
+            </button>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-surface-900 dark:text-surface-100 truncate">{{ q.label }}</span>
@@ -453,24 +604,6 @@ function handleEditField(field: string) {
               </div>
             </div>
             <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity shrink-0">
-              <button
-                type="button"
-                :disabled="index === 0"
-                class="rounded p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors disabled:opacity-30"
-                title="Move up"
-                @click="moveQuestion(index, 'up')"
-              >
-                <ChevronUp class="size-4" />
-              </button>
-              <button
-                type="button"
-                :disabled="index === model.questions.length - 1"
-                class="rounded p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors disabled:opacity-30"
-                title="Move down"
-                @click="moveQuestion(index, 'down')"
-              >
-                <ChevronDown class="size-4" />
-              </button>
               <button
                 type="button"
                 class="rounded p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
@@ -540,4 +673,22 @@ function handleEditField(field: string) {
       />
     </div>
   </div>
+
+  <ScreeningQuestionImportModal
+    v-if="showQuestionImportModal"
+    :state="props.aiQuestionImportState ?? 'idle'"
+    :error="props.aiQuestionImportError"
+    :existing-question-count="model.questions.length"
+    :deletes-applicant-answers="Boolean(props.operations)"
+    @close="showQuestionImportModal = false"
+    @import="emit('importAiQuestions', $event)"
+  />
+
+  <ScreeningQuestionGenerationModeModal
+    v-if="showQuestionGenerationModeModal"
+    :existing-question-count="model.questions.length"
+    :deletes-applicant-answers="Boolean(props.operations)"
+    @close="showQuestionGenerationModeModal = false"
+    @select="selectAiQuestionGenerationMode"
+  />
 </template>

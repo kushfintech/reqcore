@@ -48,6 +48,7 @@ async function copyApplicationLink() {
 
 const {
   questions: jobQuestions,
+  refresh: refreshJobQuestions,
   addQuestion,
   updateQuestion,
   deleteQuestion,
@@ -102,6 +103,97 @@ const builderOperations = {
   setPhoneRequirement: (value: 'hidden' | 'optional' | 'required') => updateJob({ phoneRequirement: value }),
   setRequireResume: (value: boolean) => updateJob({ requireResume: value }),
   setRequireCoverLetter: (value: boolean) => updateJob({ requireCoverLetter: value }),
+}
+
+type AiQuestionGenerationState = 'idle' | 'running' | 'done' | 'failed' | 'unavailable'
+type AiQuestionGenerationMode = 'fill_gaps' | 'replace'
+type GeneratedQuestionsResponse = {
+  questions: BuilderQuestion[]
+  source: 'ai' | 'ai_import'
+  mode?: AiQuestionGenerationMode
+}
+
+const aiQuestionGenerationState = ref<AiQuestionGenerationState>('idle')
+const aiQuestionGenerationError = ref<string | null>(null)
+const aiQuestionImportState = ref<AiQuestionGenerationState>('idle')
+const aiQuestionImportError = ref<string | null>(null)
+
+async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace') {
+  if (aiQuestionGenerationState.value === 'running' || aiQuestionImportState.value === 'running') return
+
+  const replacing = mode === 'replace' && builderModel.value.questions.length > 0
+
+  aiQuestionGenerationState.value = 'running'
+  aiQuestionGenerationError.value = null
+
+  try {
+    const result = await $fetch<GeneratedQuestionsResponse>(`/api/jobs/${jobId}/questions/generate`, {
+      method: 'POST',
+      body: { mode },
+    })
+    await refreshJobQuestions()
+    aiQuestionGenerationState.value = 'done'
+    if (mode === 'fill_gaps') {
+      if (result.questions.length === 0) {
+        toast.info('No missing questions found', 'The current questions already cover the meaningful requirements in the job description.')
+      }
+      else {
+        toast.success(`${result.questions.length} missing ${result.questions.length === 1 ? 'question' : 'questions'} added`)
+      }
+    }
+    else {
+      toast.success(replacing ? 'Screening questions replaced' : 'Screening questions generated')
+    }
+  }
+  catch (err: any) {
+    const statusCode = err?.data?.statusCode ?? err?.statusCode
+    const statusMessage = err?.data?.statusMessage ?? err?.statusMessage ?? err?.message
+    const providerUnavailable = statusCode === 422 && /provider|openrouter|ai is not available|removed/i.test(statusMessage ?? '')
+
+    aiQuestionGenerationState.value = providerUnavailable ? 'unavailable' : 'failed'
+    aiQuestionGenerationError.value = providerUnavailable
+      ? 'No AI provider is available. Configure one in Settings → AI, then try again.'
+      : 'No questions were changed. Try again, or edit the questions manually.'
+    toast.error('Failed to generate questions', {
+      message: aiQuestionGenerationError.value,
+      details: statusMessage || `${statusCode ?? 'Unknown'} error — no additional details from server.`,
+      statusCode,
+    })
+  }
+}
+
+async function importAiQuestions(sourceText: string) {
+  if (aiQuestionImportState.value === 'running' || aiQuestionGenerationState.value === 'running') return
+
+  const replacing = builderModel.value.questions.length > 0
+  aiQuestionImportState.value = 'running'
+  aiQuestionImportError.value = null
+
+  try {
+    const result = await $fetch<GeneratedQuestionsResponse>(`/api/jobs/${jobId}/questions/import`, {
+      method: 'POST',
+      body: { sourceText, replaceExisting: replacing },
+    })
+    await refreshJobQuestions()
+    aiQuestionGenerationState.value = 'idle'
+    aiQuestionGenerationError.value = null
+    aiQuestionImportState.value = 'done'
+    toast.success(`${result.questions.length} screening ${result.questions.length === 1 ? 'question' : 'questions'} created`)
+  }
+  catch (err: any) {
+    const statusCode = err?.data?.statusCode ?? err?.statusCode
+    const statusMessage = err?.data?.statusMessage ?? err?.statusMessage ?? err?.message
+    const providerUnavailable = statusCode === 422 && /provider|openrouter|ai is not available|removed/i.test(statusMessage ?? '')
+    aiQuestionImportState.value = providerUnavailable ? 'unavailable' : 'failed'
+    aiQuestionImportError.value = providerUnavailable
+      ? 'No AI provider is available. Configure one in Settings → AI, then try again.'
+      : 'No questions were changed. Check the pasted text and try again.'
+    toast.error('Failed to import questions', {
+      message: aiQuestionImportError.value,
+      details: statusMessage || `${statusCode ?? 'Unknown'} error — no additional details from server.`,
+      statusCode,
+    })
+  }
 }
 
 </script>
@@ -168,6 +260,12 @@ const builderOperations = {
               :job-title="job.title"
               :operations="builderOperations"
               :show-preview="false"
+              :ai-question-generation-state="aiQuestionGenerationState"
+              :ai-question-generation-error="aiQuestionGenerationError"
+              :ai-question-import-state="aiQuestionImportState"
+              :ai-question-import-error="aiQuestionImportError"
+              @generate-ai-questions="generateAiQuestions"
+              @import-ai-questions="importAiQuestions"
             />
           </div>
         </div>

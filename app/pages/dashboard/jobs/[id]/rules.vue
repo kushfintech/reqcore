@@ -32,6 +32,16 @@ const builderQuestions = computed(() =>
 
 const saving = ref(false)
 const running = ref(false)
+type AiGenerationState = 'idle' | 'running' | 'done' | 'failed' | 'unavailable'
+type GeneratedRulesResponse = {
+  rules: ApplicationRuleInput[]
+  source: 'ai'
+  reason: 'no_eligible_questions' | 'no_appropriate_rules' | null
+}
+
+const aiGenerationState = ref<AiGenerationState>('idle')
+const aiGenerationError = ref<string | null>(null)
+const aiGeneratedDraft = ref<{ id: number, rules: ApplicationRuleInput[] } | null>(null)
 
 async function onSave(payload: ApplicationRuleInput[]) {
   saving.value = true
@@ -64,6 +74,63 @@ async function onRun() {
     running.value = false
   }
 }
+
+async function onGenerate() {
+  if (aiGenerationState.value === 'running') return
+  if (!job.value?.description?.trim()) {
+    toast.warning('Job description required', 'Add a job description first so AI can suggest appropriate automation rules.')
+    return
+  }
+
+  aiGenerationState.value = 'running'
+  aiGenerationError.value = null
+
+  try {
+    const result = await $fetch<GeneratedRulesResponse>(`/api/jobs/${jobId}/rules/generate`, {
+      method: 'POST',
+    })
+
+    if (result.rules.length === 0) {
+      aiGenerationState.value = 'idle'
+      if (result.reason === 'no_eligible_questions') {
+        toast.info(
+          'No suitable structured questions',
+          'Add a choice, number, or checkbox question that measures an essential job requirement, then try again.',
+        )
+      }
+      else {
+        toast.info(
+          'No appropriate rules found',
+          'AI found no safe match between the job description and a rule-compatible question. Free-text and sensitive questions are not used for automatic routing.',
+        )
+      }
+      return
+    }
+
+    aiGeneratedDraft.value = { id: Date.now(), rules: result.rules }
+    aiGenerationState.value = 'done'
+    toast.success(
+      `${result.rules.length} automation ${result.rules.length === 1 ? 'rule' : 'rules'} drafted`,
+      'Review the draft and save it when you are ready.',
+    )
+  }
+  catch (err: any) {
+    const statusCode = err?.data?.statusCode ?? err?.statusCode
+    const statusMessage = err?.data?.statusMessage ?? err?.statusMessage ?? err?.message
+    const providerUnavailable = statusCode === 422
+      && /provider|openrouter|ai is not available|removed/i.test(statusMessage ?? '')
+
+    aiGenerationState.value = providerUnavailable ? 'unavailable' : 'failed'
+    aiGenerationError.value = providerUnavailable
+      ? 'No AI provider is available. Configure one in Settings → AI, then try again.'
+      : 'No rules were changed. Try again, or create the rules manually.'
+    toast.error('Failed to generate rules', {
+      message: aiGenerationError.value,
+      details: statusMessage || `${statusCode ?? 'Unknown'} error — no additional details from server.`,
+      statusCode,
+    })
+  }
+}
 </script>
 
 <template>
@@ -87,8 +154,12 @@ async function onRun() {
       :server-rules="rules"
       :saving="saving"
       :running="running"
+      :ai-generation-state="aiGenerationState"
+      :ai-generation-error="aiGenerationError"
+      :ai-generated-draft="aiGeneratedDraft"
       @save="onSave"
       @run="onRun"
+      @generate="onGenerate"
     />
   </div>
 </template>
