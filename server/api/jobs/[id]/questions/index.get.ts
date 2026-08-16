@@ -1,5 +1,5 @@
-import { eq, and, asc } from 'drizzle-orm'
-import { job, jobQuestion } from '../../../../database/schema'
+import { eq, and, asc, count } from 'drizzle-orm'
+import { job, jobQuestion, questionResponse } from '../../../../database/schema'
 import { jobIdParamSchema } from '../../../../utils/schemas/jobQuestion'
 
 export default defineEventHandler(async (event) => {
@@ -35,5 +35,19 @@ export default defineEventHandler(async (event) => {
     },
   })
 
-  return questions
+  // Applicant answers cascade when a question is deleted, so the builder needs
+  // the real count to warn about what a bulk replace would destroy.
+  const answerCounts = await db
+    .select({ questionId: questionResponse.questionId, total: count() })
+    .from(questionResponse)
+    .innerJoin(jobQuestion, eq(questionResponse.questionId, jobQuestion.id))
+    .where(and(eq(jobQuestion.jobId, jobId), eq(jobQuestion.organizationId, orgId)))
+    .groupBy(questionResponse.questionId)
+
+  const answerCountByQuestion = new Map(answerCounts.map(row => [row.questionId, row.total]))
+
+  return questions.map(question => ({
+    ...question,
+    responseCount: answerCountByQuestion.get(question.id) ?? 0,
+  }))
 })

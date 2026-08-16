@@ -24,6 +24,12 @@ type DraftQuestion = {
   description?: string | null
   required: boolean
   options?: string[] | null
+  /**
+   * Applicant answers already stored against this question. Deleting the
+   * question cascades them away, so bulk actions must warn with the real total.
+   * Absent in the create-job wizard, where no applicants can exist yet.
+   */
+  responseCount?: number
 }
 
 type ApplicationForm = {
@@ -74,8 +80,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  generateAiQuestions: [mode: AiQuestionGenerationMode]
-  importAiQuestions: [sourceText: string]
+  generateAiQuestions: [mode: AiQuestionGenerationMode, acknowledgeAnswerDeletion: boolean]
+  importAiQuestions: [sourceText: string, acknowledgeAnswerDeletion: boolean]
 }>()
 
 const model = defineModel<ApplicationForm>({ required: true })
@@ -85,6 +91,11 @@ const showQuestionGenerationModeModal = ref(false)
 const showQuestionImportModal = ref(false)
 const aiActionRunning = computed(() =>
   props.aiQuestionGenerationState === 'running' || props.aiQuestionImportState === 'running',
+)
+
+/** Applicant answers a bulk replace would permanently destroy. */
+const applicantAnswerCount = computed(() =>
+  model.value.questions.reduce((total, question) => total + (question.responseCount ?? 0), 0),
 )
 
 const questionTypeLabels: Record<QuestionType, string> = {
@@ -141,12 +152,12 @@ function requestAiQuestions() {
     showQuestionGenerationModeModal.value = true
     return
   }
-  emit('generateAiQuestions', 'replace')
+  emit('generateAiQuestions', 'replace', false)
 }
 
-function selectAiQuestionGenerationMode(mode: AiQuestionGenerationMode) {
+function selectAiQuestionGenerationMode(mode: AiQuestionGenerationMode, acknowledgeAnswerDeletion: boolean) {
   showQuestionGenerationModeModal.value = false
-  emit('generateAiQuestions', mode)
+  emit('generateAiQuestions', mode, acknowledgeAnswerDeletion)
 }
 
 /** Run a delegated persistence handler, surfacing failures inline. */
@@ -679,15 +690,15 @@ function handleEditField(field: string) {
     :state="props.aiQuestionImportState ?? 'idle'"
     :error="props.aiQuestionImportError"
     :existing-question-count="model.questions.length"
-    :deletes-applicant-answers="Boolean(props.operations)"
+    :applicant-answer-count="applicantAnswerCount"
     @close="showQuestionImportModal = false"
-    @import="emit('importAiQuestions', $event)"
+    @import="(sourceText, acknowledged) => emit('importAiQuestions', sourceText, acknowledged)"
   />
 
   <ScreeningQuestionGenerationModeModal
     v-if="showQuestionGenerationModeModal"
     :existing-question-count="model.questions.length"
-    :deletes-applicant-answers="Boolean(props.operations)"
+    :applicant-answer-count="applicantAnswerCount"
     @close="showQuestionGenerationModeModal = false"
     @select="selectAiQuestionGenerationMode"
   />

@@ -3,9 +3,8 @@ import { job } from '../../../database/schema'
 import { idParamSchema } from '../../../utils/schemas/job'
 import { generateShareCopy } from '../../../utils/ai/shareCopy'
 import { resolveAnalysisProvider } from '../../../utils/ai/resolveProvider'
-import { assertPlatformBudget, BudgetExceededError, budgetErrorToHttp } from '../../../utils/ai/budget'
-import { computeCostUsdMicros } from '../../../utils/ai/pricing'
-import { captureAiGeneration } from '../../../utils/ai/observability'
+import { assertPlatformBudgetForRequest } from '../../../utils/ai/budget'
+import { recordAiGeneration } from '../../../utils/ai/usage'
 import { createRateLimiter } from '../../../utils/rateLimit'
 import { SHARE_LANGUAGE_AUTO, SHARE_LANGUAGE_CODES, shareLanguage } from '../../../../shared/share-languages'
 
@@ -84,14 +83,7 @@ export default defineEventHandler(async (event) => {
 
   const resolved = await resolveAnalysisProvider(orgId)
 
-  if (resolved.billingMode === 'platform') {
-    try {
-      await assertPlatformBudget(orgId)
-    } catch (err) {
-      if (err instanceof BudgetExceededError) throw budgetErrorToHttp(err)
-      throw createError({ statusCode: 503, statusMessage: 'AI budget check failed. Please try again later.' })
-    }
-  }
+  await assertPlatformBudgetForRequest(orgId, resolved.billingMode)
 
   // Only stated as a fact to the model when it's a figure we'd show publicly —
   // a negotiable range is hidden on the job page, so it must not leak into a
@@ -115,16 +107,14 @@ export default defineEventHandler(async (event) => {
       languageName: shareLanguage(language).promptName || null,
     })
   } catch {
-    captureAiGeneration({
+    await recordAiGeneration({
       orgId,
       userId: session.user.id,
       feature: 'job_share_copy',
       provider: resolved.provider,
       model: resolved.model,
       billingMode: resolved.billingMode,
-      promptTokens: 0,
-      completionTokens: 0,
-      costUsdMicros: null,
+      usage: null,
       latencyMs: Date.now() - startedAt,
       status: 'failed',
     })
@@ -134,18 +124,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  captureAiGeneration({
+  await recordAiGeneration({
     orgId,
     userId: session.user.id,
     feature: 'job_share_copy',
     provider: resolved.provider,
     model: resolved.model,
     billingMode: resolved.billingMode,
-    promptTokens: result.usage.promptTokens,
-    completionTokens: result.usage.completionTokens,
-    costUsdMicros: computeCostUsdMicros(
-      resolved.model, result.usage.promptTokens, result.usage.completionTokens,
-    ),
+    usage: result.usage,
     latencyMs: Date.now() - startedAt,
     status: 'completed',
   })

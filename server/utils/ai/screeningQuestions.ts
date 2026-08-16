@@ -59,6 +59,16 @@ export type GeneratedScreeningQuestion = {
   options: string[] | null
 }
 
+/**
+ * Token usage travels back with the questions so the caller can bill it. A
+ * platform-paid call whose usage is dropped here is spend no budget gate can
+ * see, so every model-calling export in this file returns it.
+ */
+export type ScreeningQuestionResult = {
+  questions: GeneratedScreeningQuestion[]
+  usage: { promptTokens: number, completionTokens: number }
+}
+
 type ScreeningQuestionGenerationOptions = {
   /** Existing fields are untrusted context used only to identify coverage gaps. */
   existingQuestions?: GeneratedScreeningQuestion[]
@@ -187,7 +197,7 @@ export async function generateScreeningQuestionsFromDescription(
   jobTitle: string,
   jobDescription: string,
   options: ScreeningQuestionGenerationOptions = {},
-): Promise<GeneratedScreeningQuestion[]> {
+): Promise<ScreeningQuestionResult> {
   const existingQuestions = options.existingQuestions ?? []
   const fillGaps = options.fillGaps === true && existingQuestions.length > 0
   const taskInstruction = fillGaps
@@ -246,11 +256,14 @@ ${JSON.stringify(existingQuestions.map(question => ({
     schemaDescription: 'Job-related, pre-offer screening question drafts',
   })
 
-  return filterCompliantScreeningQuestions(result.object.questions.map(question => ({
-    ...question,
-    description: question.description || null,
-    options: question.options.length ? question.options : null,
-  })), fillGaps ? existingQuestions : [])
+  return {
+    questions: filterCompliantScreeningQuestions(result.object.questions.map(question => ({
+      ...question,
+      description: question.description || null,
+      options: question.options.length ? question.options : null,
+    })), fillGaps ? existingQuestions : []),
+    usage: result.usage,
+  }
 }
 
 /**
@@ -262,7 +275,7 @@ ${JSON.stringify(existingQuestions.map(question => ({
 export async function importScreeningQuestionsFromText(
   config: ProviderConfig,
   sourceText: string,
-): Promise<GeneratedScreeningQuestion[]> {
+): Promise<ScreeningQuestionResult> {
   const result = await generateStructuredOutput(config, {
     system: `You convert recruiter-authored screening questions from plain text into structured application-form fields.
 
@@ -293,9 +306,12 @@ ${sourceText}
     schemaDescription: 'Structured fields converted from recruiter-authored plain-text questions',
   })
 
-  return normalizeImportedScreeningQuestions(result.object.questions.map(question => ({
-    ...question,
-    description: question.description || null,
-    options: question.options.length ? question.options : null,
-  })))
+  return {
+    questions: normalizeImportedScreeningQuestions(result.object.questions.map(question => ({
+      ...question,
+      description: question.description || null,
+      options: question.options.length ? question.options : null,
+    }))),
+    usage: result.usage,
+  }
 }

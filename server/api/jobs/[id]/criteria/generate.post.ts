@@ -57,7 +57,9 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const criteria = await generateCriteriaFromDescription(
+  // No budget gate here: this route reads the org's own `aiConfig` row and 422s
+  // without one, so it can only ever spend the org's key — never the platform's.
+  const { criteria } = await generateCriteriaFromDescription(
     {
       provider: config.provider as SupportedProvider,
       model: config.model,

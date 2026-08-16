@@ -193,7 +193,7 @@ export async function generateCriteriaFromDescription(
   config: ProviderConfig,
   jobTitle: string,
   jobDescription: string,
-): Promise<CriterionDefinition[]> {
+): Promise<{ criteria: CriterionDefinition[]; usage: { promptTokens: number; completionTokens: number } }> {
   const result = await generateStructuredOutput(config, {
     system: `You are an expert HR analyst specializing in creating objective, unbiased candidate evaluation criteria.
 Your task is to analyze a job description and create 4–6 measurable scoring criteria.
@@ -211,14 +211,17 @@ Rules:
     schemaDescription: 'Scoring criteria generated from job description',
   })
 
-  return result.object.criteria.map((c, i) => ({
-    key: c.key,
-    name: c.name,
-    description: c.description,
-    category: c.category,
-    maxScore: c.maxScore,
-    weight: c.suggestedWeight,
-  }))
+  return {
+    criteria: result.object.criteria.map(c => ({
+      key: c.key,
+      name: c.name,
+      description: c.description,
+      category: c.category,
+      maxScore: c.maxScore,
+      weight: c.suggestedWeight,
+    })),
+    usage: result.usage,
+  }
 }
 
 // ─── Score Application ────────────────────────────────────────────

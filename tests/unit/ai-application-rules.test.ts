@@ -163,7 +163,10 @@ describe('AI application-rule generation', () => {
       })],
     )
 
-    expect(result).toEqual([])
+    expect(result.rules).toEqual([])
+    // Usage has to survive an empty result too — an ungated, unrecorded call is
+    // still a call we paid for.
+    expect(result.usage).toEqual({ promptTokens: 1, completionTokens: 1 })
     const options = vi.mocked(generateStructuredOutput).mock.calls.at(-1)?.[1]
     expect(options?.system).toContain('Return an empty rules array')
     expect(options?.system).toContain('Never automate decisions using protected or sensitive traits')
@@ -209,7 +212,9 @@ describe('AI application-rule generation', () => {
       })],
     )
 
-    expect(result).toEqual([])
+    expect(result.rules).toEqual([])
+    // No model call means no usage to report — and nothing to bill.
+    expect(result.usage).toBeNull()
     expect(generateStructuredOutput).not.toHaveBeenCalled()
   })
 })

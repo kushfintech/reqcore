@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { importScreeningQuestionsFromText } from '../../utils/ai/screeningQuestions'
 import { resolveAnalysisProvider } from '../../utils/ai/resolveProvider'
+import { assertPlatformBudgetForRequest } from '../../utils/ai/budget'
+import { recordAiGeneration } from '../../utils/ai/usage'
 import { createRateLimiter } from '../../utils/rateLimit'
 
 const bodySchema = z.object({
@@ -21,11 +23,45 @@ export default defineEventHandler(async (event) => {
   const orgId = session.session.activeOrganizationId
   const body = await readValidatedBody(event, bodySchema.parse)
   const resolved = await resolveAnalysisProvider(orgId, { preferId: body.aiConfigId })
+  await assertPlatformBudgetForRequest(orgId, resolved.billingMode)
 
-  const questions = await importScreeningQuestionsFromText(
-    resolved.providerConfig,
-    body.sourceText,
-  )
+  const startedAt = Date.now()
+  let result: Awaited<ReturnType<typeof importScreeningQuestionsFromText>>
+
+  try {
+    result = await importScreeningQuestionsFromText(resolved.providerConfig, body.sourceText)
+  }
+  catch {
+    await recordAiGeneration({
+      orgId,
+      userId: session.user.id,
+      feature: 'screening_question_import',
+      provider: resolved.provider,
+      model: resolved.model,
+      billingMode: resolved.billingMode,
+      usage: null,
+      latencyMs: Date.now() - startedAt,
+      status: 'failed',
+    })
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Could not read the pasted questions right now. Please try again.',
+    })
+  }
+
+  await recordAiGeneration({
+    orgId,
+    userId: session.user.id,
+    feature: 'screening_question_import',
+    provider: resolved.provider,
+    model: resolved.model,
+    billingMode: resolved.billingMode,
+    usage: result.usage,
+    latencyMs: Date.now() - startedAt,
+    status: 'completed',
+  })
+
+  const questions = result.questions
 
   if (questions.length === 0) {
     throw createError({

@@ -3,10 +3,16 @@ import { z } from 'zod'
 import { job, jobQuestion } from '../../../../database/schema'
 import { generateScreeningQuestionsFromDescription } from '../../../../utils/ai/screeningQuestions'
 import { resolveAnalysisProvider } from '../../../../utils/ai/resolveProvider'
+import { assertPlatformBudgetForRequest } from '../../../../utils/ai/budget'
+import { recordAiGeneration } from '../../../../utils/ai/usage'
 import { createRateLimiter } from '../../../../utils/rateLimit'
 
 const paramsSchema = z.object({ id: z.string().min(1) })
-const bodySchema = z.object({ mode: z.enum(['fill_gaps', 'replace']).default('replace') })
+const bodySchema = z.object({
+  mode: z.enum(['fill_gaps', 'replace']).default('replace'),
+  /** Set once the recruiter has confirmed the applicant answers a replace destroys. */
+  acknowledgeAnswerDeletion: z.boolean().default(false),
+})
 
 const limiter = createRateLimiter({
   windowMs: 60_000,
@@ -19,6 +25,9 @@ const limiter = createRateLimiter({
  * Existing questions can either be used as coverage context for gap-filling or
  * replaced explicitly. Generation completes before a replacement transaction
  * removes anything.
+ *
+ * Replacing cascades into `question_response`, so a replace that would destroy
+ * applicant answers is rejected until the client acknowledges the exact count.
  */
 export default defineEventHandler(async (event) => {
   await limiter(event)
@@ -68,25 +77,72 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Reject before spending an AI call when the recruiter has not yet confirmed
+  // the applicant answers this replace would cascade away.
+  const replacing = body.mode === 'replace' && existingJob.questions.length > 0
+  if (replacing) {
+    assertApplicantAnswerDeletionAcknowledged(
+      await countApplicantAnswersForJob(db, jobId, orgId),
+      body.acknowledgeAnswerDeletion,
+    )
+  }
+
   const resolved = await resolveAnalysisProvider(orgId)
-  const generatedQuestions = await generateScreeningQuestionsFromDescription(
-    resolved.providerConfig,
-    existingJob.title,
-    existingJob.description,
-    {
-      fillGaps: body.mode === 'fill_gaps',
-      existingQuestions: existingJob.questions.map(question => ({
-        label: question.label,
-        type: question.type,
-        description: question.description,
-        required: question.required,
-        options: question.options,
-      })),
-    },
-  )
+  await assertPlatformBudgetForRequest(orgId, resolved.billingMode)
+
+  const startedAt = Date.now()
+  let result: Awaited<ReturnType<typeof generateScreeningQuestionsFromDescription>>
+
+  try {
+    result = await generateScreeningQuestionsFromDescription(
+      resolved.providerConfig,
+      existingJob.title,
+      existingJob.description,
+      {
+        fillGaps: body.mode === 'fill_gaps',
+        existingQuestions: existingJob.questions.map(question => ({
+          label: question.label,
+          type: question.type,
+          description: question.description,
+          required: question.required,
+          options: question.options,
+        })),
+      },
+    )
+  }
+  catch {
+    await recordAiGeneration({
+      orgId,
+      userId: session.user.id,
+      feature: 'screening_question_generation',
+      provider: resolved.provider,
+      model: resolved.model,
+      billingMode: resolved.billingMode,
+      usage: null,
+      latencyMs: Date.now() - startedAt,
+      status: 'failed',
+    })
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Could not draft screening questions right now. Please try again.',
+    })
+  }
+
+  await recordAiGeneration({
+    orgId,
+    userId: session.user.id,
+    feature: 'screening_question_generation',
+    provider: resolved.provider,
+    model: resolved.model,
+    billingMode: resolved.billingMode,
+    usage: result.usage,
+    latencyMs: Date.now() - startedAt,
+    status: 'completed',
+  })
+
   const generated = body.mode === 'fill_gaps'
-    ? generatedQuestions.slice(0, 50 - existingJob.questions.length)
-    : generatedQuestions
+    ? result.questions.slice(0, 50 - existingJob.questions.length)
+    : result.questions
 
   if (generated.length === 0 && body.mode === 'replace') {
     throw createError({
@@ -100,7 +156,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const saved = await db.transaction(async (tx) => {
-    if (body.mode === 'replace' && existingJob.questions.length > 0) {
+    if (replacing) {
+      // Re-check inside the transaction: applicants can submit while the model
+      // is still generating, and those answers were never acknowledged.
+      assertApplicantAnswerDeletionAcknowledged(
+        await countApplicantAnswersForJob(tx, jobId, orgId),
+        body.acknowledgeAnswerDeletion,
+      )
+
       await tx.delete(jobQuestion).where(and(
         eq(jobQuestion.jobId, jobId),
         eq(jobQuestion.organizationId, orgId),

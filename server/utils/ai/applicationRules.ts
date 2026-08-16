@@ -167,6 +167,16 @@ export function normalizeGeneratedApplicationRules(
 }
 
 /**
+ * Token usage travels back with the rules so the caller can bill it — dropping
+ * it would make a platform-paid call invisible to the budget gate. Null when no
+ * eligible question made a model call worth making.
+ */
+export type ApplicationRuleResult = {
+  rules: ApplicationRuleInput[]
+  usage: { promptTokens: number, completionTokens: number } | null
+}
+
+/**
  * Draft a small, conservative set of automation rules from the job description
  * and the role's structured screening questions. Nothing is persisted here.
  */
@@ -175,9 +185,9 @@ export async function generateApplicationRulesFromDescription(
   jobTitle: string,
   jobDescription: string,
   questions: RuleGenerationQuestion[],
-): Promise<ApplicationRuleInput[]> {
+): Promise<ApplicationRuleResult> {
   const eligibleQuestions = getEligibleAutomationQuestions(questions)
-  if (eligibleQuestions.length === 0) return []
+  if (eligibleQuestions.length === 0) return { rules: [], usage: null }
 
   const questionReference = eligibleQuestions.map(question => ({
     id: question.id,
@@ -230,5 +240,8 @@ ${JSON.stringify(questionReference)}
     schemaDescription: 'Conservative, job-related applicant automation rule drafts',
   })
 
-  return normalizeGeneratedApplicationRules(result.object.rules, eligibleQuestions)
+  return {
+    rules: normalizeGeneratedApplicationRules(result.object.rules, eligibleQuestions),
+    usage: result.usage,
+  }
 }

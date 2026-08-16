@@ -132,6 +132,8 @@
     "offlineBody": "Bitte schauen Sie später wieder vorbei.",
     "posted": "Veröffentlicht am {date}",
     "poweredBy": "Bereitgestellt von",
+    "readFullDescription": "Vollständige Beschreibung lesen",
+    "showLess": "Weniger anzeigen",
     "type": {
       "full_time": "Vollzeit",
       "part_time": "Teilzeit",

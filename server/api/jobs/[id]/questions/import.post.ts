@@ -3,12 +3,16 @@ import { z } from 'zod'
 import { job, jobQuestion } from '../../../../database/schema'
 import { importScreeningQuestionsFromText } from '../../../../utils/ai/screeningQuestions'
 import { resolveAnalysisProvider } from '../../../../utils/ai/resolveProvider'
+import { assertPlatformBudgetForRequest } from '../../../../utils/ai/budget'
+import { recordAiGeneration } from '../../../../utils/ai/usage'
 import { createRateLimiter } from '../../../../utils/rateLimit'
 
 const paramsSchema = z.object({ id: z.string().min(1) })
 const bodySchema = z.object({
   sourceText: z.string().trim().min(1).max(50_000),
   replaceExisting: z.boolean().default(false),
+  /** Set once the recruiter has confirmed the applicant answers a replace destroys. */
+  acknowledgeAnswerDeletion: z.boolean().default(false),
 })
 
 const limiter = createRateLimiter({
@@ -17,7 +21,12 @@ const limiter = createRateLimiter({
   message: 'Too many AI screening-question requests. Please wait before retrying.',
 })
 
-/** Analyze pasted questions and persist the resulting form fields atomically. */
+/**
+ * Analyze pasted questions and persist the resulting form fields atomically.
+ *
+ * Replacing cascades into `question_response`, so an import that would destroy
+ * applicant answers is rejected until the client acknowledges the exact count.
+ */
 export default defineEventHandler(async (event) => {
   await limiter(event)
   const session = await requirePermission(event, { job: ['update'] })
@@ -43,11 +52,56 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Reject before spending an AI call when the recruiter has not yet confirmed
+  // the applicant answers this replacement would cascade away.
+  const replacing = existingJob.questions.length > 0
+  if (replacing) {
+    assertApplicantAnswerDeletionAcknowledged(
+      await countApplicantAnswersForJob(db, jobId, orgId),
+      body.acknowledgeAnswerDeletion,
+    )
+  }
+
   const resolved = await resolveAnalysisProvider(orgId)
-  const imported = await importScreeningQuestionsFromText(
-    resolved.providerConfig,
-    body.sourceText,
-  )
+  await assertPlatformBudgetForRequest(orgId, resolved.billingMode)
+
+  const startedAt = Date.now()
+  let result: Awaited<ReturnType<typeof importScreeningQuestionsFromText>>
+
+  try {
+    result = await importScreeningQuestionsFromText(resolved.providerConfig, body.sourceText)
+  }
+  catch {
+    await recordAiGeneration({
+      orgId,
+      userId: session.user.id,
+      feature: 'screening_question_import',
+      provider: resolved.provider,
+      model: resolved.model,
+      billingMode: resolved.billingMode,
+      usage: null,
+      latencyMs: Date.now() - startedAt,
+      status: 'failed',
+    })
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Could not read the pasted questions right now. Please try again.',
+    })
+  }
+
+  await recordAiGeneration({
+    orgId,
+    userId: session.user.id,
+    feature: 'screening_question_import',
+    provider: resolved.provider,
+    model: resolved.model,
+    billingMode: resolved.billingMode,
+    usage: result.usage,
+    latencyMs: Date.now() - startedAt,
+    status: 'completed',
+  })
+
+  const imported = result.questions
 
   if (imported.length === 0) {
     throw createError({
@@ -57,7 +111,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const saved = await db.transaction(async (tx) => {
-    if (existingJob.questions.length > 0) {
+    if (replacing) {
+      // Re-check inside the transaction: applicants can submit while the model
+      // is still analyzing, and those answers were never acknowledged.
+      assertApplicantAnswerDeletionAcknowledged(
+        await countApplicantAnswersForJob(tx, jobId, orgId),
+        body.acknowledgeAnswerDeletion,
+      )
+
       await tx.delete(jobQuestion).where(and(
         eq(jobQuestion.jobId, jobId),
         eq(jobQuestion.organizationId, orgId),

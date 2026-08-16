@@ -6,6 +6,8 @@ import {
   getEligibleAutomationQuestions,
 } from '../../../../utils/ai/applicationRules'
 import { resolveAnalysisProvider } from '../../../../utils/ai/resolveProvider'
+import { assertPlatformBudgetForRequest } from '../../../../utils/ai/budget'
+import { recordAiGeneration } from '../../../../utils/ai/usage'
 import { createRateLimiter } from '../../../../utils/rateLimit'
 
 const paramsSchema = z.object({ id: z.string().min(1) })
@@ -69,16 +71,52 @@ export default defineEventHandler(async (event) => {
   }
 
   const resolved = await resolveAnalysisProvider(orgId)
-  const rules = await generateApplicationRulesFromDescription(
-    resolved.providerConfig,
-    jobRecord.title,
-    jobRecord.description,
-    jobRecord.questions,
-  )
+  await assertPlatformBudgetForRequest(orgId, resolved.billingMode)
+
+  const startedAt = Date.now()
+  let result: Awaited<ReturnType<typeof generateApplicationRulesFromDescription>>
+
+  try {
+    result = await generateApplicationRulesFromDescription(
+      resolved.providerConfig,
+      jobRecord.title,
+      jobRecord.description,
+      jobRecord.questions,
+    )
+  }
+  catch {
+    await recordAiGeneration({
+      orgId,
+      userId: session.user.id,
+      feature: 'application_rule_generation',
+      provider: resolved.provider,
+      model: resolved.model,
+      billingMode: resolved.billingMode,
+      usage: null,
+      latencyMs: Date.now() - startedAt,
+      status: 'failed',
+    })
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Could not draft automation rules right now. Please try again.',
+    })
+  }
+
+  await recordAiGeneration({
+    orgId,
+    userId: session.user.id,
+    feature: 'application_rule_generation',
+    provider: resolved.provider,
+    model: resolved.model,
+    billingMode: resolved.billingMode,
+    usage: result.usage,
+    latencyMs: Date.now() - startedAt,
+    status: 'completed',
+  })
 
   return {
-    rules,
+    rules: result.rules,
     source: 'ai' as const,
-    reason: rules.length === 0 ? 'no_appropriate_rules' as const : null,
+    reason: result.rules.length === 0 ? 'no_appropriate_rules' as const : null,
   }
 })

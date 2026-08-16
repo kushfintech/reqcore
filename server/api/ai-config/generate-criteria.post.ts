@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { generateCriteriaFromDescription } from '../../utils/ai/scoring'
 import { resolveAnalysisProvider } from '../../utils/ai/resolveProvider'
+import { assertPlatformBudgetForRequest } from '../../utils/ai/budget'
+import { recordAiGeneration } from '../../utils/ai/usage'
 import { createRateLimiter } from '../../utils/rateLimit'
 
 const bodySchema = z.object({
@@ -29,12 +31,47 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, bodySchema.parse)
 
   const resolved = await resolveAnalysisProvider(orgId, { preferId: body.aiConfigId })
+  await assertPlatformBudgetForRequest(orgId, resolved.billingMode)
 
-  const criteria = await generateCriteriaFromDescription(
-    resolved.providerConfig,
-    body.title,
-    body.description,
-  )
+  const startedAt = Date.now()
+  let result: Awaited<ReturnType<typeof generateCriteriaFromDescription>>
 
-  return { criteria, source: 'ai' }
+  try {
+    result = await generateCriteriaFromDescription(
+      resolved.providerConfig,
+      body.title,
+      body.description,
+    )
+  }
+  catch {
+    await recordAiGeneration({
+      orgId,
+      userId: session.user.id,
+      feature: 'scoring_criteria_generation',
+      provider: resolved.provider,
+      model: resolved.model,
+      billingMode: resolved.billingMode,
+      usage: null,
+      latencyMs: Date.now() - startedAt,
+      status: 'failed',
+    })
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Could not draft scoring criteria right now. Please try again.',
+    })
+  }
+
+  await recordAiGeneration({
+    orgId,
+    userId: session.user.id,
+    feature: 'scoring_criteria_generation',
+    provider: resolved.provider,
+    model: resolved.model,
+    billingMode: resolved.billingMode,
+    usage: result.usage,
+    latencyMs: Date.now() - startedAt,
+    status: 'completed',
+  })
+
+  return { criteria: result.criteria, source: 'ai' }
 })

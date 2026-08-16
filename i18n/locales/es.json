@@ -133,6 +133,8 @@
     "offlineBody": "Vuelve a consultar más tarde.",
     "posted": "Publicado el {date}",
     "poweredBy": "Con tecnología de",
+    "readFullDescription": "Leer la descripción completa",
+    "showLess": "Mostrar menos",
     "type": {
       "full_time": "Tiempo completo",
       "part_time": "Medio tiempo",

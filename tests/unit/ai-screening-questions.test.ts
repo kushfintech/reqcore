@@ -136,6 +136,7 @@ describe('AI screening-question gap filling', () => {
   it('supplies existing coverage to the model and accepts no additions when there are no gaps', async () => {
     vi.mocked(generateStructuredOutput).mockResolvedValueOnce({
       object: { questions: [] },
+      usage: { promptTokens: 900, completionTokens: 40 },
     } as never)
 
     const existing = [question('Which helpdesk tools have you used?')]
@@ -146,7 +147,10 @@ describe('AI screening-question gap filling', () => {
       { fillGaps: true, existingQuestions: existing },
     )
 
-    expect(result).toEqual([])
+    expect(result.questions).toEqual([])
+    // Spend the endpoint cannot see is spend no budget gate can cap, so usage
+    // has to survive the trip back even when nothing was generated.
+    expect(result.usage).toEqual({ promptTokens: 900, completionTokens: 40 })
     const generationOptions = vi.mocked(generateStructuredOutput).mock.calls.at(-1)?.[1]
     expect(generationOptions?.system).toContain('only for meaningful, job-related gaps')
     expect(generationOptions?.system).toContain('Return an empty questions array when there are no meaningful gaps')

@@ -133,6 +133,8 @@
     "offlineBody": "Please check back later.",
     "posted": "Posted {date}",
     "poweredBy": "Powered by",
+    "readFullDescription": "Read full description",
+    "showLess": "Show less",
     "type": {
       "full_time": "Full-time",
       "part_time": "Part-time",

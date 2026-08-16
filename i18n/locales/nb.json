@@ -133,6 +133,8 @@
     "offlineBody": "Kom tilbake senere.",
     "posted": "Publisert {date}",
     "poweredBy": "Drevet av",
+    "readFullDescription": "Les hele beskrivelsen",
+    "showLess": "Vis mindre",
     "type": {
       "full_time": "Heltid",
       "part_time": "Deltid",

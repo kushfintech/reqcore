@@ -66,6 +66,8 @@ type BuilderQuestion = {
   description?: string | null
   required: boolean
   options?: string[] | null
+  /** Applicant answers that would be destroyed if this question is deleted. */
+  responseCount?: number
 }
 
 const builderModel = ref<{
@@ -92,6 +94,7 @@ watch(jobQuestions, (qs) => {
     description: q.description ?? null,
     required: q.required,
     options: q.options ?? null,
+    responseCount: q.responseCount ?? 0,
   }))
 }, { immediate: true })
 
@@ -113,12 +116,24 @@ type GeneratedQuestionsResponse = {
   mode?: AiQuestionGenerationMode
 }
 
+/**
+ * The server refuses to cascade-delete applicant answers without an explicit
+ * acknowledgement of the count. Confirming in the dialog normally satisfies it,
+ * so this only fires when answers landed while the model was still working.
+ */
+function unacknowledgedAnswerDeletion(err: any): boolean {
+  return (err?.data?.data ?? err?.data)?.code === 'applicant_answers_will_be_deleted'
+}
+
 const aiQuestionGenerationState = ref<AiQuestionGenerationState>('idle')
 const aiQuestionGenerationError = ref<string | null>(null)
 const aiQuestionImportState = ref<AiQuestionGenerationState>('idle')
 const aiQuestionImportError = ref<string | null>(null)
 
-async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace') {
+async function generateAiQuestions(
+  mode: AiQuestionGenerationMode = 'replace',
+  acknowledgeAnswerDeletion = false,
+) {
   if (aiQuestionGenerationState.value === 'running' || aiQuestionImportState.value === 'running') return
 
   const replacing = mode === 'replace' && builderModel.value.questions.length > 0
@@ -129,7 +144,7 @@ async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace') {
   try {
     const result = await $fetch<GeneratedQuestionsResponse>(`/api/jobs/${jobId}/questions/generate`, {
       method: 'POST',
-      body: { mode },
+      body: { mode, acknowledgeAnswerDeletion },
     })
     await refreshJobQuestions()
     aiQuestionGenerationState.value = 'done'
@@ -149,11 +164,17 @@ async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace') {
     const statusCode = err?.data?.statusCode ?? err?.statusCode
     const statusMessage = err?.data?.statusMessage ?? err?.statusMessage ?? err?.message
     const providerUnavailable = statusCode === 422 && /provider|openrouter|ai is not available|removed/i.test(statusMessage ?? '')
+    const staleAnswerCount = unacknowledgedAnswerDeletion(err)
+
+    // Pull the newer answer count in so the next confirmation names it.
+    if (staleAnswerCount) await refreshJobQuestions()
 
     aiQuestionGenerationState.value = providerUnavailable ? 'unavailable' : 'failed'
     aiQuestionGenerationError.value = providerUnavailable
       ? 'No AI provider is available. Configure one in Settings → AI, then try again.'
-      : 'No questions were changed. Try again, or edit the questions manually.'
+      : staleAnswerCount
+        ? 'No questions were changed. New applicant answers arrived while AI was working — confirm the updated count to continue.'
+        : 'No questions were changed. Try again, or edit the questions manually.'
     toast.error('Failed to generate questions', {
       message: aiQuestionGenerationError.value,
       details: statusMessage || `${statusCode ?? 'Unknown'} error — no additional details from server.`,
@@ -162,7 +183,7 @@ async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace') {
   }
 }
 
-async function importAiQuestions(sourceText: string) {
+async function importAiQuestions(sourceText: string, acknowledgeAnswerDeletion = false) {
   if (aiQuestionImportState.value === 'running' || aiQuestionGenerationState.value === 'running') return
 
   const replacing = builderModel.value.questions.length > 0
@@ -172,7 +193,7 @@ async function importAiQuestions(sourceText: string) {
   try {
     const result = await $fetch<GeneratedQuestionsResponse>(`/api/jobs/${jobId}/questions/import`, {
       method: 'POST',
-      body: { sourceText, replaceExisting: replacing },
+      body: { sourceText, replaceExisting: replacing, acknowledgeAnswerDeletion },
     })
     await refreshJobQuestions()
     aiQuestionGenerationState.value = 'idle'
@@ -184,10 +205,17 @@ async function importAiQuestions(sourceText: string) {
     const statusCode = err?.data?.statusCode ?? err?.statusCode
     const statusMessage = err?.data?.statusMessage ?? err?.statusMessage ?? err?.message
     const providerUnavailable = statusCode === 422 && /provider|openrouter|ai is not available|removed/i.test(statusMessage ?? '')
+    const staleAnswerCount = unacknowledgedAnswerDeletion(err)
+
+    // Pull the newer answer count in so the next confirmation names it.
+    if (staleAnswerCount) await refreshJobQuestions()
+
     aiQuestionImportState.value = providerUnavailable ? 'unavailable' : 'failed'
     aiQuestionImportError.value = providerUnavailable
       ? 'No AI provider is available. Configure one in Settings → AI, then try again.'
-      : 'No questions were changed. Check the pasted text and try again.'
+      : staleAnswerCount
+        ? 'No questions were changed. New applicant answers arrived while AI was working — confirm the updated count to continue.'
+        : 'No questions were changed. Check the pasted text and try again.'
     toast.error('Failed to import questions', {
       message: aiQuestionImportError.value,
       details: statusMessage || `${statusCode ?? 'Unknown'} error — no additional details from server.`,

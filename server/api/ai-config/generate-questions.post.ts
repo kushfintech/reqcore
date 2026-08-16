@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { generateScreeningQuestionsFromDescription } from '../../utils/ai/screeningQuestions'
 import { resolveAnalysisProvider } from '../../utils/ai/resolveProvider'
+import { assertPlatformBudgetForRequest } from '../../utils/ai/budget'
+import { recordAiGeneration } from '../../utils/ai/usage'
 import { createRateLimiter } from '../../utils/rateLimit'
 
 const existingQuestionSchema = z.object({
@@ -46,23 +48,59 @@ export default defineEventHandler(async (event) => {
     })
   }
   const resolved = await resolveAnalysisProvider(orgId, { preferId: body.aiConfigId })
+  await assertPlatformBudgetForRequest(orgId, resolved.billingMode)
 
-  const generated = await generateScreeningQuestionsFromDescription(
-    resolved.providerConfig,
-    body.title,
-    body.description,
-    {
-      fillGaps: body.mode === 'fill_gaps',
-      existingQuestions: body.existingQuestions.map(question => ({
-        ...question,
-        description: question.description ?? null,
-        options: question.options ?? null,
-      })),
-    },
-  )
+  const startedAt = Date.now()
+  let result: Awaited<ReturnType<typeof generateScreeningQuestionsFromDescription>>
+
+  try {
+    result = await generateScreeningQuestionsFromDescription(
+      resolved.providerConfig,
+      body.title,
+      body.description,
+      {
+        fillGaps: body.mode === 'fill_gaps',
+        existingQuestions: body.existingQuestions.map(question => ({
+          ...question,
+          description: question.description ?? null,
+          options: question.options ?? null,
+        })),
+      },
+    )
+  }
+  catch {
+    await recordAiGeneration({
+      orgId,
+      userId: session.user.id,
+      feature: 'screening_question_generation',
+      provider: resolved.provider,
+      model: resolved.model,
+      billingMode: resolved.billingMode,
+      usage: null,
+      latencyMs: Date.now() - startedAt,
+      status: 'failed',
+    })
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Could not draft screening questions right now. Please try again.',
+    })
+  }
+
+  await recordAiGeneration({
+    orgId,
+    userId: session.user.id,
+    feature: 'screening_question_generation',
+    provider: resolved.provider,
+    model: resolved.model,
+    billingMode: resolved.billingMode,
+    usage: result.usage,
+    latencyMs: Date.now() - startedAt,
+    status: 'completed',
+  })
+
   const questions = body.mode === 'fill_gaps'
-    ? generated.slice(0, 50 - body.existingQuestions.length)
-    : generated
+    ? result.questions.slice(0, 50 - body.existingQuestions.length)
+    : result.questions
 
   if (questions.length === 0 && body.mode === 'replace') {
     throw createError({

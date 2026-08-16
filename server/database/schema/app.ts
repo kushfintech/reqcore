@@ -1148,8 +1148,22 @@ export const analysisRun = pgTable('analysis_run', {
   index('analysis_run_created_at_idx').on(t.createdAt),
 ]))
 
-/** Which product surface spent the tokens. */
-export const aiUsageFeatureEnum = pgEnum('ai_usage_feature', ['chatbot_message'])
+/**
+ * Which product surface spent the tokens.
+ *
+ * Every platform-paid call that is not an analysis run needs a value here —
+ * spend without a ledger row is spend the daily kill-switch cannot see. Add the
+ * value before shipping the surface, not after.
+ */
+export const aiUsageFeatureEnum = pgEnum('ai_usage_feature', [
+  'chatbot_message',
+  'job_share_copy',
+  'cv_contact_extraction',
+  'screening_question_generation',
+  'screening_question_import',
+  'application_rule_generation',
+  'scoring_criteria_generation',
+])
 
 /**
  * Spend ledger for platform-paid LLM calls that are NOT analysis runs.

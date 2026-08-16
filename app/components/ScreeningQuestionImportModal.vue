@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ClipboardPaste, Loader2, Sparkles, X } from 'lucide-vue-next'
+import { AlertTriangle, ClipboardPaste, Loader2, Sparkles, X } from 'lucide-vue-next'
 
 const MAX_SOURCE_CHARS = 50_000
 
@@ -7,18 +7,32 @@ const props = defineProps<{
   state: 'idle' | 'running' | 'done' | 'failed' | 'unavailable'
   error?: string | null
   existingQuestionCount: number
-  deletesApplicantAnswers?: boolean
+  /** Stored applicant answers that replacing would permanently destroy. */
+  applicantAnswerCount?: number
 }>()
 
 const emit = defineEmits<{
   close: []
-  import: [sourceText: string]
+  import: [sourceText: string, acknowledgeAnswerDeletion: boolean]
 }>()
 
 const sourceText = ref('')
 const textarea = ref<HTMLTextAreaElement | null>(null)
 const trimmedSource = computed(() => sourceText.value.trim())
-const canSubmit = computed(() => trimmedSource.value.length > 0 && props.state !== 'running')
+
+const answerCount = computed(() => props.applicantAnswerCount ?? 0)
+/** Destroying stored answers takes a deliberate opt-in, not just a submit. */
+const answerDeletionAcknowledged = ref(false)
+const needsAnswerDeletionAcknowledgement = computed(() => answerCount.value > 0)
+
+// A newer count (answers landing mid-import) has not been acknowledged yet.
+watch(answerCount, () => { answerDeletionAcknowledged.value = false })
+
+const canSubmit = computed(() =>
+  trimmedSource.value.length > 0
+  && props.state !== 'running'
+  && (!needsAnswerDeletionAcknowledgement.value || answerDeletionAcknowledged.value),
+)
 
 function close() {
   if (props.state !== 'running') emit('close')
@@ -26,7 +40,7 @@ function close() {
 
 function submit() {
   if (!canSubmit.value) return
-  emit('import', trimmedSource.value)
+  emit('import', trimmedSource.value, answerDeletionAcknowledged.value)
 }
 
 function handleKeydown(event: KeyboardEvent) {
@@ -111,11 +125,43 @@ onBeforeUnmount(() => {
             </div>
 
             <div
-              v-if="existingQuestionCount > 0"
+              v-if="existingQuestionCount > 0 && !needsAnswerDeletionAcknowledgement"
               class="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs leading-relaxed text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300"
             >
               Importing will replace {{ existingQuestionCount }} existing {{ existingQuestionCount === 1 ? 'question' : 'questions' }}.
-              <template v-if="deletesApplicantAnswers"> Existing applicant answers to those questions will be permanently deleted.</template>
+            </div>
+
+            <!-- Irreversible: name the exact number of answers and require an opt-in. -->
+            <div
+              v-else-if="needsAnswerDeletionAcknowledgement"
+              class="rounded-lg border border-danger-200 bg-danger-50 p-4 dark:border-danger-800 dark:bg-danger-950/30"
+            >
+              <div class="flex items-start gap-3">
+                <AlertTriangle class="mt-0.5 size-5 shrink-0 text-danger-600 dark:text-danger-400" />
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-semibold text-danger-800 dark:text-danger-300">
+                    This deletes {{ answerCount.toLocaleString() }} applicant
+                    {{ answerCount === 1 ? 'answer' : 'answers' }}
+                  </p>
+                  <p class="mt-1 text-xs leading-relaxed text-danger-700 dark:text-danger-400">
+                    Importing replaces your {{ existingQuestionCount }} existing
+                    {{ existingQuestionCount === 1 ? 'question' : 'questions' }} and removes every answer
+                    applicants gave to them. This cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <label class="mt-3 flex cursor-pointer items-start gap-2.5 text-xs font-medium text-danger-800 dark:text-danger-300">
+                <input
+                  v-model="answerDeletionAcknowledged"
+                  type="checkbox"
+                  :disabled="state === 'running'"
+                  class="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-danger-300 text-danger-600 focus:ring-danger-500/40 disabled:cursor-not-allowed dark:border-danger-700"
+                >
+                <span>
+                  I understand {{ answerCount.toLocaleString() }} applicant
+                  {{ answerCount === 1 ? 'answer' : 'answers' }} will be permanently deleted.
+                </span>
+              </label>
             </div>
 
             <div
