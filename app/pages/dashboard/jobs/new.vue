@@ -175,6 +175,9 @@ const applicationForm = ref({
 
 const aiQuestionGenerationState = ref<'idle' | 'running' | 'done' | 'failed' | 'unavailable'>('idle')
 const aiQuestionGenerationError = ref<string | null>(null)
+const questionsBeforeAiGeneration = ref<DraftQuestion[] | null>(null)
+/** Persist the recruiter's opt-out so returning to this step does not recreate removed drafts. */
+const skipAutomaticQuestionGeneration = ref(false)
 const aiQuestionImportState = ref<'idle' | 'running' | 'done' | 'failed' | 'unavailable'>('idle')
 const aiQuestionImportError = ref<string | null>(null)
 
@@ -560,6 +563,7 @@ type GeneratedQuestionResponse = {
     required: boolean
     options: string[] | null
   }>
+  emptyReason?: 'insufficient_description' | 'no_grounded_questions' | 'no_gaps' | null
 }
 
 type AiQuestionGenerationMode = 'fill_gaps' | 'replace'
@@ -583,6 +587,10 @@ async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace', s
 
   aiQuestionGenerationState.value = 'running'
   aiQuestionGenerationError.value = null
+  const questionsBeforeGeneration = applicationForm.value.questions.map(question => ({
+    ...question,
+    options: question.options ? [...question.options] : question.options,
+  }))
   try {
     const existingQuestions = applicationForm.value.questions.map(question => ({
       label: question.label,
@@ -612,12 +620,20 @@ async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace', s
     }))
 
     if (generated.length === 0) {
-      if (mode === 'fill_gaps') {
-        aiQuestionGenerationState.value = 'done'
-        toast.info('No missing questions found', 'Your current questions already cover the meaningful requirements in the job description.')
-        return
+      aiQuestionGenerationState.value = 'done'
+      if (result.emptyReason === 'insufficient_description') {
+        aiQuestionGenerationError.value = 'No questions were generated because the description lacks concrete job-related details.'
+        toast.info('Not enough job detail', 'Add concrete duties, skills, or qualifications before generating screening questions.')
       }
-      throw new Error('No questions passed the safety checks')
+      else if (mode === 'fill_gaps') {
+        aiQuestionGenerationError.value = 'No questions were added because the current form already covers the grounded requirements.'
+        toast.info('No missing questions found', 'Your current questions already cover the meaningful requirements in the job description.')
+      }
+      else {
+        aiQuestionGenerationError.value = 'No questions were generated because the description did not support useful, role-related questions.'
+        toast.info('No grounded questions found', 'The job description does not support any useful screening questions. Add questions manually or make the description more specific.')
+      }
+      return
     }
 
     let appliedQuestionCount = generated.length
@@ -631,6 +647,8 @@ async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace', s
       applicationForm.value.questions = [...applicationForm.value.questions, ...additions]
       appliedQuestionCount = additions.length
       if (additions.length > 0) {
+        questionsBeforeAiGeneration.value = questionsBeforeGeneration
+        skipAutomaticQuestionGeneration.value = false
         toast.success(`${additions.length} missing ${additions.length === 1 ? 'question' : 'questions'} added`)
       }
       else {
@@ -639,6 +657,8 @@ async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace', s
     }
     else {
       applicationForm.value.questions = generated
+      questionsBeforeAiGeneration.value = questionsBeforeGeneration
+      skipAutomaticQuestionGeneration.value = false
       if (showFailure) {
         toast.success(
           hadExistingQuestions ? 'Screening questions replaced' : 'Screening questions generated',
@@ -667,6 +687,24 @@ async function generateAiQuestions(mode: AiQuestionGenerationMode = 'replace', s
   }
 }
 
+function undoAiQuestionGeneration() {
+  const previousQuestions = questionsBeforeAiGeneration.value
+  if (!previousQuestions) return
+
+  applicationForm.value.questions = previousQuestions.map(question => ({
+    ...question,
+    options: question.options ? [...question.options] : question.options,
+  }))
+  questionsBeforeAiGeneration.value = null
+  skipAutomaticQuestionGeneration.value = true
+  aiQuestionGenerationState.value = 'idle'
+  aiQuestionGenerationError.value = null
+  track('ai_screening_questions_generation_undone', { restored_question_count: previousQuestions.length })
+  toast.info(
+    previousQuestions.length > 0 ? 'Previous screening questions restored' : 'AI-generated questions removed',
+  )
+}
+
 async function importAiQuestions(sourceText: string) {
   if (aiQuestionImportState.value === 'running' || aiQuestionGenerationState.value === 'running') return
 
@@ -689,6 +727,7 @@ async function importAiQuestions(sourceText: string) {
 
     if (imported.length === 0) throw new Error('No questions were identified in the pasted text')
     applicationForm.value.questions = imported
+    questionsBeforeAiGeneration.value = null
     aiQuestionGenerationState.value = 'idle'
     aiQuestionGenerationError.value = null
     aiQuestionImportState.value = 'done'
@@ -712,7 +751,7 @@ async function importAiQuestions(sourceText: string) {
 }
 
 watch(currentStep, (step) => {
-  if (step === 2 && aiQuestionGenerationState.value === 'idle') {
+  if (step === 2 && aiQuestionGenerationState.value === 'idle' && !skipAutomaticQuestionGeneration.value) {
     generateAiQuestions('replace', false)
   }
 }, { immediate: true, flush: 'post' })
@@ -750,6 +789,8 @@ function saveFormToStorage() {
     const data = {
       form: form.value,
       applicationForm: applicationForm.value,
+      questionsBeforeAiGeneration: questionsBeforeAiGeneration.value,
+      skipAutomaticQuestionGeneration: skipAutomaticQuestionGeneration.value,
       scoringCriteria: scoringCriteria.value,
       scoringMode: scoringMode.value,
       autoScoreOnApply: autoScoreOnApply.value,
@@ -777,6 +818,8 @@ function restoreFormFromStorage() {
     const data = z.object({
       form: z.unknown().optional(),
       applicationForm: z.unknown().optional(),
+      questionsBeforeAiGeneration: z.unknown().optional(),
+      skipAutomaticQuestionGeneration: z.unknown().optional(),
       scoringCriteria: z.unknown().optional(),
       scoringMode: z.unknown().optional(),
       autoScoreOnApply: z.unknown().optional(),
@@ -794,6 +837,17 @@ function restoreFormFromStorage() {
 
     const storedApplicationForm = applicationFormSchema.safeParse(data.applicationForm)
     if (storedApplicationForm.success) applicationForm.value = storedApplicationForm.data
+
+    const storedQuestionsBeforeAiGeneration = z.array(draftQuestionSchema).max(50).safeParse(data.questionsBeforeAiGeneration)
+    if (storedQuestionsBeforeAiGeneration.success) {
+      questionsBeforeAiGeneration.value = storedQuestionsBeforeAiGeneration.data
+      aiQuestionGenerationState.value = 'done'
+    }
+
+    const storedSkipAutomaticQuestionGeneration = z.boolean().safeParse(data.skipAutomaticQuestionGeneration)
+    if (storedSkipAutomaticQuestionGeneration.success) {
+      skipAutomaticQuestionGeneration.value = storedSkipAutomaticQuestionGeneration.data
+    }
 
     const storedCriteria = z.array(scoringCriterionDraftSchema).max(20).safeParse(data.scoringCriteria)
     if (storedCriteria.success) scoringCriteria.value = storedCriteria.data
@@ -940,6 +994,8 @@ function resetFormState() {
   }
   aiQuestionGenerationState.value = 'idle'
   aiQuestionGenerationError.value = null
+  questionsBeforeAiGeneration.value = null
+  skipAutomaticQuestionGeneration.value = false
   aiQuestionImportState.value = 'idle'
   aiQuestionImportError.value = null
   scoringCriteria.value = []
@@ -962,7 +1018,7 @@ watch(newJobResetSignal, (next, prev) => {
 })
 
 // Auto-save when step changes or form data changes
-watch([currentStep, form, applicationForm, scoringCriteria, scoringMode, autoScoreOnApply, distributeToBoards], () => {
+watch([currentStep, form, applicationForm, questionsBeforeAiGeneration, skipAutomaticQuestionGeneration, scoringCriteria, scoringMode, autoScoreOnApply, distributeToBoards], () => {
   saveFormToStorage()
 }, { deep: true })
 
@@ -1759,9 +1815,11 @@ const typeOptions = [
                 :show-preview="false"
                 :ai-question-generation-state="isTestMode ? undefined : aiQuestionGenerationState"
                 :ai-question-generation-error="aiQuestionGenerationError"
+                :can-undo-ai-question-generation="questionsBeforeAiGeneration !== null"
                 :ai-question-import-state="aiQuestionImportState"
                 :ai-question-import-error="aiQuestionImportError"
                 @generate-ai-questions="generateAiQuestions($event, true)"
+                @undo-ai-question-generation="undoAiQuestionGeneration"
                 @import-ai-questions="importAiQuestions"
               />
 

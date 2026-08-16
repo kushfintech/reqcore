@@ -114,6 +114,7 @@ type GeneratedQuestionsResponse = {
   questions: BuilderQuestion[]
   source: 'ai' | 'ai_import'
   mode?: AiQuestionGenerationMode
+  emptyReason?: 'insufficient_description' | 'no_grounded_questions' | 'no_gaps' | null
 }
 
 /**
@@ -148,13 +149,22 @@ async function generateAiQuestions(
     })
     await refreshJobQuestions()
     aiQuestionGenerationState.value = 'done'
-    if (mode === 'fill_gaps') {
-      if (result.questions.length === 0) {
+    if (result.questions.length === 0) {
+      if (result.emptyReason === 'insufficient_description') {
+        aiQuestionGenerationError.value = 'No questions were generated because the description lacks concrete job-related details.'
+        toast.info('Not enough job detail', 'Add concrete duties, skills, or qualifications before generating screening questions.')
+      }
+      else if (mode === 'fill_gaps') {
+        aiQuestionGenerationError.value = 'No questions were added because the current form already covers the grounded requirements.'
         toast.info('No missing questions found', 'The current questions already cover the meaningful requirements in the job description.')
       }
       else {
-        toast.success(`${result.questions.length} missing ${result.questions.length === 1 ? 'question' : 'questions'} added`)
+        aiQuestionGenerationError.value = 'No questions were generated because the description did not support useful, role-related questions.'
+        toast.info('No grounded questions found', 'The job description does not support any useful screening questions. Add questions manually or make the description more specific.')
       }
+    }
+    else if (mode === 'fill_gaps') {
+      toast.success(`${result.questions.length} missing ${result.questions.length === 1 ? 'question' : 'questions'} added`)
     }
     else {
       toast.success(replacing ? 'Screening questions replaced' : 'Screening questions generated')

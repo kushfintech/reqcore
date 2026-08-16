@@ -10,6 +10,7 @@ import {
   type RuleOperator,
 } from '~~/shared/application-rules'
 import { generateStructuredOutput, type ProviderConfig } from './provider'
+import { containsAutomationSensitiveTerms } from './sensitiveTerms'
 
 export interface RuleGenerationQuestion {
   id: string
@@ -50,10 +51,10 @@ const DETERMINISTIC_QUESTION_TYPES = new Set<QuestionType>([
 ])
 
 // Automatic applicant routing must not use fields that ask for protected,
-// sensitive, or jurisdiction-dependent personal information. This is a narrow
+// sensitive, or jurisdiction-dependent personal information. This is a keyword
 // backstop in addition to the model instructions; recruiters still review every
-// draft before saving it.
-const SENSITIVE_QUESTION_PATTERN = /\b(?:age|date of birth|birth date|gender|sex|sexual orientation|race|ethnicity|nationality|citizenship|visa|work authori[sz]ation|authori[sz]ed to work|right to work|religion|disabilit(?:y|ies)|medical|health|pregnan(?:cy|t)|marital|family status|children|caregiving|veteran|military|political|union|criminal record|arrest|credit history|salary history|native language|mother tongue)\b/i
+// draft before saving it. Questions reach here in whatever language they were
+// written or imported in, so the terms cover every shipped locale.
 
 export function getEligibleAutomationQuestions(
   questions: RuleGenerationQuestion[],
@@ -65,7 +66,7 @@ export function getEligibleAutomationQuestions(
       && !(question.options ?? []).some(option => option.trim())
     ) return false
     const content = `${question.label}\n${question.description ?? ''}`
-    return !SENSITIVE_QUESTION_PATTERN.test(content)
+    return !containsAutomationSensitiveTerms(content)
   })
 }
 

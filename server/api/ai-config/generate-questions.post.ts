@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { generateScreeningQuestionsFromDescription } from '../../utils/ai/screeningQuestions'
+import { generateScreeningQuestionsFromDescription, hasMeaningfulJobDescription } from '../../utils/ai/screeningQuestions'
 import { resolveAnalysisProvider } from '../../utils/ai/resolveProvider'
 import { assertPlatformBudgetForRequest } from '../../utils/ai/budget'
 import { recordAiGeneration } from '../../utils/ai/usage'
@@ -46,6 +46,14 @@ export default defineEventHandler(async (event) => {
       statusCode: 409,
       statusMessage: 'The application form already has the maximum of 50 screening questions.',
     })
+  }
+  if (!hasMeaningfulJobDescription(body.description)) {
+    return {
+      questions: [],
+      source: 'ai' as const,
+      mode: body.mode,
+      emptyReason: 'insufficient_description' as const,
+    }
   }
   const resolved = await resolveAnalysisProvider(orgId, { preferId: body.aiConfigId })
   await assertPlatformBudgetForRequest(orgId, resolved.billingMode)
@@ -102,12 +110,10 @@ export default defineEventHandler(async (event) => {
     ? result.questions.slice(0, 50 - body.existingQuestions.length)
     : result.questions
 
-  if (questions.length === 0 && body.mode === 'replace') {
-    throw createError({
-      statusCode: 422,
-      statusMessage: 'AI did not return any questions that passed the screening safety checks.',
-    })
+  return {
+    questions,
+    source: 'ai' as const,
+    mode: body.mode,
+    emptyReason: questions.length === 0 ? result.emptyReason : null,
   }
-
-  return { questions, source: 'ai' as const, mode: body.mode }
 })

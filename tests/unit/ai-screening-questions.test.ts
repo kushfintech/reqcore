@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { generateStructuredOutput } from '../../server/utils/ai/provider'
 import {
   containsProhibitedScreeningContent,
   filterCompliantScreeningQuestions,
   generateScreeningQuestionsFromDescription,
+  hasMeaningfulJobDescription,
   normalizeImportedScreeningQuestions,
   type GeneratedScreeningQuestion,
 } from '../../server/utils/ai/screeningQuestions'
@@ -11,6 +12,10 @@ import {
 vi.mock('../../server/utils/ai/provider', () => ({
   generateStructuredOutput: vi.fn(),
 }))
+
+beforeEach(() => {
+  vi.mocked(generateStructuredOutput).mockReset()
+})
 
 function question(label: string, overrides: Partial<GeneratedScreeningQuestion> = {}): GeneratedScreeningQuestion {
   return {
@@ -148,6 +153,7 @@ describe('AI screening-question gap filling', () => {
     )
 
     expect(result.questions).toEqual([])
+    expect(result.emptyReason).toBe('no_gaps')
     // Spend the endpoint cannot see is spend no budget gate can cap, so usage
     // has to survive the trip back even when nothing was generated.
     expect(result.usage).toEqual({ promptTokens: 900, completionTokens: 40 })
@@ -155,5 +161,51 @@ describe('AI screening-question gap filling', () => {
     expect(generationOptions?.system).toContain('only for meaningful, job-related gaps')
     expect(generationOptions?.system).toContain('Return an empty questions array when there are no meaningful gaps')
     expect(generationOptions?.prompt).toContain('Which helpdesk tools have you used?')
+  })
+})
+
+describe('AI screening-question grounding', () => {
+  it('rejects repetitive placeholder text without calling the model', async () => {
+    const description = 'efessssssssssssss efessssssssssssssefessssssssssssssefessssssssssssssefessssssssssssssefesssssssssssss'
+
+    expect(hasMeaningfulJobDescription(description)).toBe(false)
+
+    const result = await generateScreeningQuestionsFromDescription(
+      {} as never,
+      'Developer',
+      description,
+    )
+
+    expect(result).toEqual({
+      questions: [],
+      usage: { promptTokens: 0, completionTokens: 0 },
+      emptyReason: 'insufficient_description',
+    })
+    expect(generateStructuredOutput).not.toHaveBeenCalled()
+  })
+
+  it('allows the model to return no questions when coherent text has no grounded questions', async () => {
+    vi.mocked(generateStructuredOutput).mockResolvedValueOnce({
+      object: { questions: [] },
+      usage: { promptTokens: 300, completionTokens: 20 },
+    } as never)
+
+    const result = await generateScreeningQuestionsFromDescription(
+      {} as never,
+      'Team Member',
+      'Join our friendly team and help us make every day a great day.',
+    )
+
+    expect(result.questions).toEqual([])
+    expect(result.emptyReason).toBe('no_grounded_questions')
+    const generationOptions = vi.mocked(generateStructuredOutput).mock.calls.at(-1)?.[1]
+    expect(generationOptions?.system).toContain('If it is nonsense, placeholder text, repetition')
+    expect(generationOptions?.system).toContain('Every question must be traceable to a specific fact')
+    expect(generationOptions?.schema.safeParse({ questions: [] }).success).toBe(true)
+  })
+
+  it('keeps concise descriptions with concrete role information eligible', () => {
+    expect(hasMeaningfulJobDescription('Build Vue interfaces and review TypeScript pull requests.')).toBe(true)
+    expect(hasMeaningfulJobDescription('Use React and Vue.')).toBe(true)
   })
 })

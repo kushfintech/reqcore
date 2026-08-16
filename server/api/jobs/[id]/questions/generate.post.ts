@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { job, jobQuestion } from '../../../../database/schema'
-import { generateScreeningQuestionsFromDescription } from '../../../../utils/ai/screeningQuestions'
+import { generateScreeningQuestionsFromDescription, hasMeaningfulJobDescription } from '../../../../utils/ai/screeningQuestions'
 import { resolveAnalysisProvider } from '../../../../utils/ai/resolveProvider'
 import { assertPlatformBudgetForRequest } from '../../../../utils/ai/budget'
 import { recordAiGeneration } from '../../../../utils/ai/usage'
@@ -76,6 +76,14 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'The application form already has the maximum of 50 screening questions.',
     })
   }
+  if (!hasMeaningfulJobDescription(existingJob.description)) {
+    return {
+      questions: [],
+      source: 'ai' as const,
+      mode: body.mode,
+      emptyReason: 'insufficient_description' as const,
+    }
+  }
 
   // Reject before spending an AI call when the recruiter has not yet confirmed
   // the applicant answers this replace would cascade away.
@@ -144,15 +152,13 @@ export default defineEventHandler(async (event) => {
     ? result.questions.slice(0, 50 - existingJob.questions.length)
     : result.questions
 
-  if (generated.length === 0 && body.mode === 'replace') {
-    throw createError({
-      statusCode: 422,
-      statusMessage: 'AI did not return any questions that passed the screening safety checks.',
-    })
-  }
-
   if (generated.length === 0) {
-    return { questions: [], source: 'ai' as const, mode: body.mode }
+    return {
+      questions: [],
+      source: 'ai' as const,
+      mode: body.mode,
+      emptyReason: result.emptyReason,
+    }
   }
 
   const saved = await db.transaction(async (tx) => {
@@ -197,5 +203,5 @@ export default defineEventHandler(async (event) => {
     })
   })
 
-  return { questions: saved, source: 'ai' as const, mode: body.mode }
+  return { questions: saved, source: 'ai' as const, mode: body.mode, emptyReason: null }
 })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {
   Lock, Upload, FileText, GripVertical, Plus, Pencil, Trash2,
-  Zap, Sparkles, Loader2, ShieldCheck, ClipboardPaste,
+  Zap, Sparkles, Loader2, ShieldCheck, ClipboardPaste, RotateCcw,
 } from 'lucide-vue-next'
 
 /**
@@ -75,12 +75,15 @@ const props = defineProps<{
   /** Present only when the parent supports AI question generation. */
   aiQuestionGenerationState?: 'idle' | 'running' | 'done' | 'failed' | 'unavailable'
   aiQuestionGenerationError?: string | null
+  /** Whether the parent can restore the questions from before the latest AI draft. */
+  canUndoAiQuestionGeneration?: boolean
   aiQuestionImportState?: 'idle' | 'running' | 'done' | 'failed' | 'unavailable'
   aiQuestionImportError?: string | null
 }>()
 
 const emit = defineEmits<{
   generateAiQuestions: [mode: AiQuestionGenerationMode, acknowledgeAnswerDeletion: boolean]
+  undoAiQuestionGeneration: []
   importAiQuestions: [sourceText: string, acknowledgeAnswerDeletion: boolean]
 }>()
 
@@ -536,13 +539,26 @@ function handleEditField(field: string) {
           <div class="flex items-start gap-2.5">
             <ShieldCheck class="mt-0.5 size-4 shrink-0 text-brand-600 dark:text-brand-400" />
             <div class="min-w-0 flex-1">
-              <p class="text-xs font-medium text-surface-700 dark:text-surface-300">
-                <template v-if="props.aiQuestionGenerationState === 'running'">AI is drafting role-related questions.</template>
-                <template v-else-if="props.aiQuestionGenerationState === 'done'">AI drafted these questions from the job description.</template>
-                <template v-else-if="props.aiQuestionGenerationState === 'failed'">AI couldn't draft safe questions this time.</template>
-                <template v-else-if="props.aiQuestionGenerationState === 'unavailable'">AI question drafting needs an AI provider.</template>
-                <template v-else>AI can draft questions from the job description.</template>
-              </p>
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <p class="text-xs font-medium text-surface-700 dark:text-surface-300">
+                  <template v-if="props.aiQuestionGenerationState === 'running'">AI is drafting role-related questions.</template>
+                  <template v-else-if="props.aiQuestionGenerationState === 'done' && model.questions.length === 0">AI did not add any screening questions.</template>
+                  <template v-else-if="props.aiQuestionGenerationState === 'done'">AI drafted these questions from the job description.</template>
+                  <template v-else-if="props.aiQuestionGenerationState === 'failed'">AI couldn't draft safe questions this time.</template>
+                  <template v-else-if="props.aiQuestionGenerationState === 'unavailable'">AI question drafting needs an AI provider.</template>
+                  <template v-else>AI can draft questions from the job description.</template>
+                </p>
+                <button
+                  v-if="props.aiQuestionGenerationState === 'done' && props.canUndoAiQuestionGeneration"
+                  type="button"
+                  :disabled="aiActionRunning || busy"
+                  class="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-60 dark:text-brand-300 dark:hover:bg-brand-900/60"
+                  @click="emit('undoAiQuestionGeneration')"
+                >
+                  <RotateCcw class="size-3.5" />
+                  Undo AI questions
+                </button>
+              </div>
               <p class="mt-1 text-xs leading-relaxed text-surface-500 dark:text-surface-400">
                 <template v-if="props.aiQuestionGenerationError">{{ props.aiQuestionGenerationError }}</template>
                 <template v-else>Safety filters are designed to exclude protected or sensitive traits. Laws vary by jurisdiction, so review every draft before publishing.</template>

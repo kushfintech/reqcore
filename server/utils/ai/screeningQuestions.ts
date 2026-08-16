@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { generateStructuredOutput, type ProviderConfig } from './provider'
+import { containsProtectedTraitTerms } from './sensitiveTerms'
 
 const generatedQuestionTypeSchema = z.enum([
   'short_text',
@@ -32,7 +33,10 @@ const generatedQuestionSchema = z.object({
 })
 
 const generatedScreeningQuestionsSchema = z.object({
-  questions: z.array(generatedQuestionSchema).min(3).max(6),
+  // Zero is a valid answer when the source does not support any useful,
+  // role-related questions. Requiring a minimum forces the model to invent
+  // content for placeholders and low-information descriptions.
+  questions: z.array(generatedQuestionSchema).max(6),
 })
 
 const gapFillingScreeningQuestionsSchema = z.object({
@@ -67,12 +71,40 @@ export type GeneratedScreeningQuestion = {
 export type ScreeningQuestionResult = {
   questions: GeneratedScreeningQuestion[]
   usage: { promptTokens: number, completionTokens: number }
+  emptyReason: 'insufficient_description' | 'no_grounded_questions' | 'no_gaps' | null
 }
 
 type ScreeningQuestionGenerationOptions = {
   /** Existing fields are untrusted context used only to identify coverage gaps. */
   existingQuestions?: GeneratedScreeningQuestion[]
   fillGaps?: boolean
+}
+
+/**
+ * Reject descriptions that contain too little linguistic signal to ground a
+ * question. This intentionally catches only obvious placeholders/repetition;
+ * borderline prose is left to the model so short, legitimate descriptions and
+ * languages without whitespace are not excluded by an English-centric rule.
+ */
+export function hasMeaningfulJobDescription(value: string): boolean {
+  const words = value
+    .normalize('NFKC')
+    .toLocaleLowerCase()
+    .match(/[\p{L}\p{N}]+/gu) ?? []
+  const characters = words.join('')
+  const uniqueCharacters = new Set(characters)
+
+  if (characters.length < 8 || uniqueCharacters.size <= 3) return false
+  if (characters.length < 40) return true
+
+  if (uniqueCharacters.size <= 5) return false
+
+  const trigrams = new Set<string>()
+  for (let index = 0; index <= characters.length - 3; index += 1) {
+    trigrams.add(characters.slice(index, index + 3))
+  }
+
+  return trigrams.size / (characters.length - 2) >= 0.18
 }
 
 /**
@@ -113,38 +145,18 @@ export function normalizeImportedScreeningQuestions(
 }
 
 /**
- * Terms that indicate a pre-offer question may request protected or otherwise
- * sensitive personal information. This deliberately errs on the side of
- * removing a potentially legitimate question: a recruiter can add a narrowly
- * job-related version themselves after checking the law that applies to them.
+ * Whether a pre-offer question may request protected or otherwise sensitive
+ * personal information. This deliberately errs on the side of removing a
+ * potentially legitimate question: a recruiter can add a narrowly job-related
+ * version themselves after checking the law that applies to them.
  *
  * The model prompt is the first guardrail. This is the non-probabilistic final
  * gate, applied to labels, help text, and options before anything reaches the
- * browser.
+ * browser — in every language the product ships, because the generator writes
+ * in the language of the job description.
  */
-const PROHIBITED_SCREENING_PATTERNS: RegExp[] = [
-  // Age and information commonly used to infer it.
-  /\b(age|aged|years? old|date of birth|birth(?:day|date)|when were you born|graduation year|year you graduated)\b/i,
-  // Race, ethnicity, ancestry, and national origin.
-  /\b(race|racial|ethnicity|ethnic origin|ancestry|national origin|country of birth|place of birth|native language|mother tongue|accent|skin colou?r)\b/i,
-  // Citizenship and immigration status are especially jurisdiction-dependent.
-  /\b(citizenship|citizen of|nationality|immigration status|visa status|work permit|work authori[sz]ation|right to work)\b/i,
-  // Sex, gender, sexual orientation, pregnancy, and related family status.
-  /\b(gender|sex|sex assigned|sexual orientation|transgender|pregnan(?:t|cy)|birth control|reproductive|pronouns?)\b/i,
-  /\b(marital status|married|single|divorced|spouse|partner's? (?:name|job|work)|children|childcare|child care|dependants?|dependents?|family plans?|start a family)\b/i,
-  // Religion or belief, including proxies such as congregation membership.
-  /\b(religion|religious|faith|church|mosque|synagogue|temple|congregation|place of worship)\b/i,
-  // Disability, medical, genetic, and workers' compensation information.
-  /\b(disabilit(?:y|ies)|disabled|medical (?:condition|history|record)|health (?:condition|history)|mental health|illness|disease|diagnosis|prescription|medication|genetic (?:information|test)|workers?' compensation|sick leave history)\b/i,
-  // Other areas restricted in at least some jurisdictions and unnecessary for
-  // an automatically generated, qualifications-only screen.
-  /\b(criminal (?:history|record)|arrested|arrests?|convicted|convictions?|credit history|credit score|bankrupt(?:cy)?|salary history|previous salary|current salary|union membership|trade union|political affiliation|political party|veteran status|military status)\b/i,
-  // Requests that expose appearance, residence, or personal social profiles.
-  /\b(headshot|photograph|photo of (?:you|yourself)|home address|residential address|personal social media)\b/i,
-]
-
 export function containsProhibitedScreeningContent(value: string): boolean {
-  return PROHIBITED_SCREENING_PATTERNS.some(pattern => pattern.test(value))
+  return containsProtectedTraitTerms(value)
 }
 
 /**
@@ -200,6 +212,15 @@ export async function generateScreeningQuestionsFromDescription(
 ): Promise<ScreeningQuestionResult> {
   const existingQuestions = options.existingQuestions ?? []
   const fillGaps = options.fillGaps === true && existingQuestions.length > 0
+
+  if (!hasMeaningfulJobDescription(jobDescription)) {
+    return {
+      questions: [],
+      usage: { promptTokens: 0, completionTokens: 0 },
+      emptyReason: 'insufficient_description',
+    }
+  }
+
   const taskInstruction = fillGaps
     ? `Review the existing screening questions against the job description. Create 0-6 additional questions only for meaningful, job-related gaps that the existing set does not already assess.
 
@@ -208,7 +229,13 @@ GAP-FILLING RULES:
 - Identify essential duties, skills, qualifications, licences, or role-specific scenarios in the job description that no existing question meaningfully assesses.
 - Add a question only when it covers one of those missing areas. Do not add a paraphrase, narrower variant, broader variant, or follow-up for an area that is already covered.
 - Return an empty questions array when there are no meaningful gaps. Never add filler merely to reach a target count.`
-    : 'Create 4-6 concise questions based only on the essential duties, skills, and qualifications explicitly supported by the job description.'
+    : `Create 0-6 concise questions based only on the essential duties, skills, and qualifications explicitly supported by the job description.
+
+GROUNDING RULES:
+- First decide whether the description contains concrete, coherent job duties, skills, qualifications, licences, schedules, tools, or scenarios.
+- If it is nonsense, placeholder text, repetition, keyword stuffing, or too vague to support a useful question, return an empty questions array.
+- Every question must be traceable to a specific fact in the job description. Do not infer normal requirements from the title, occupation, or general knowledge.
+- Never add filler merely to reach a target count.`
 
   const result = await generateStructuredOutput(config, {
     system: `You draft pre-offer screening questions for an applicant tracking system.
@@ -256,13 +283,18 @@ ${JSON.stringify(existingQuestions.map(question => ({
     schemaDescription: 'Job-related, pre-offer screening question drafts',
   })
 
+  const questions = filterCompliantScreeningQuestions(result.object.questions.map(question => ({
+    ...question,
+    description: question.description || null,
+    options: question.options.length ? question.options : null,
+  })), fillGaps ? existingQuestions : [])
+
   return {
-    questions: filterCompliantScreeningQuestions(result.object.questions.map(question => ({
-      ...question,
-      description: question.description || null,
-      options: question.options.length ? question.options : null,
-    })), fillGaps ? existingQuestions : []),
+    questions,
     usage: result.usage,
+    emptyReason: questions.length === 0
+      ? (fillGaps ? 'no_gaps' : 'no_grounded_questions')
+      : null,
   }
 }
 
@@ -313,5 +345,6 @@ ${sourceText}
       options: question.options.length ? question.options : null,
     }))),
     usage: result.usage,
+    emptyReason: null,
   }
 }
