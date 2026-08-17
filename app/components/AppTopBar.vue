@@ -343,7 +343,7 @@ onUnmounted(() => {
                   </p>
                 </div>
                 <div class="p-3">
-                  <DemoSignupOptions compact @select="showDemoPlanMenu = false" />
+                  <DemoSignupOptions compact :lift-on-hover="false" @select="showDemoPlanMenu = false" />
                 </div>
               </div>
             </Transition>
