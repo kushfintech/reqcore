@@ -84,7 +84,7 @@
     "commander": "^13.1.0",
     "drizzle-kit": "^0.31.9",
     "typescript": "^6.0.3",
-    "tsx": "^4.23.10",
+    "tsx": "^4.23.12",
     "vitest": "^4.1.10",
     "vue-tsc": "^3.3.9",
     "wait-on": "^9.0.10"
