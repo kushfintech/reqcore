@@ -6,7 +6,7 @@ import {
 import { scoreApplication, computeCompositeScore, hasScorableCandidateMaterial } from '../../../utils/ai/scoring'
 import type { CriterionDefinition } from '../../../utils/ai/scoring'
 import { resolveAnalysisProvider } from '../../../utils/ai/resolveProvider'
-import { assertPlatformBudget, BudgetExceededError, budgetErrorToHttp } from '../../../utils/ai/budget'
+import { assertPlatformBudgetForRequest } from '../../../utils/ai/budget'
 import { computeCostUsdMicros } from '../../../utils/ai/pricing'
 import { captureAiGeneration } from '../../../utils/ai/observability'
 import { extractResumeText } from '../../../utils/resume-parser'
@@ -126,14 +126,7 @@ export default defineEventHandler(async (event) => {
 
   // Money-safety gate: only platform-paid runs are budget-capped. Fail-closed —
   // if spend can't be read, the run is refused rather than risk an unbounded bill.
-  if (resolved.billingMode === 'platform') {
-    try {
-      await assertPlatformBudget(orgId)
-    } catch (err) {
-      if (err instanceof BudgetExceededError) throw budgetErrorToHttp(err)
-      throw createError({ statusCode: 503, statusMessage: 'AI budget check failed. Please try again later.' })
-    }
-  }
+  await assertPlatformBudgetForRequest(orgId, resolved.billingMode)
 
   // Resume is included when available; the job controls the other evidence sources.
   const analysisContext = app.job.analysisContext ?? DEFAULT_ANALYSIS_CONTEXT

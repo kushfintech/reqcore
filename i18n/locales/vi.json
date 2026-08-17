@@ -133,6 +133,8 @@
     "offlineBody": "Vui lòng quay lại sau.",
     "posted": "Đăng ngày {date}",
     "poweredBy": "Được cung cấp bởi",
+    "readFullDescription": "Đọc toàn bộ mô tả",
+    "showLess": "Thu gọn",
     "type": {
       "full_time": "Toàn thời gian",
       "part_time": "Bán thời gian",

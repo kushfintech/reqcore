@@ -8,8 +8,12 @@
  * passing silently, because the failure mode is an uncapped bill, not a lost
  * metric.
  *
- * Assistant turns are written in two steps, because a turn's cost isn't known
- * until it ends but the allowance has to be defended before it starts:
+ * Two write shapes live here. One-shot generations (share copy, CV extraction,
+ * screening questions, automation rules, scoring criteria) record once, after
+ * the call, with `recordAiGeneration`.
+ *
+ * Assistant turns are written in two steps instead, because a turn's cost isn't
+ * known until it ends but the allowance has to be defended before it starts:
  *
  *   1. `reserveChatbotUsage` — insert up front with an estimated credit charge.
  *      The gate sums rows, so the reservation is visible to any concurrent turn
@@ -24,8 +28,10 @@
  * independent of token usage or whether the model completed an answer.
  */
 import { and, eq, sql } from 'drizzle-orm'
-import { aiUsageEvent } from '../../database/schema'
+import { aiUsageEvent, aiUsageFeatureEnum } from '../../database/schema'
 import { estimatedTurnCredits } from './credits'
+import { computeCostUsdMicros } from './pricing'
+import { captureAiGeneration } from './observability'
 
 export interface ReserveChatbotUsageInput {
   orgId: string
@@ -169,5 +175,89 @@ export async function releaseChatbotUsage(rowId: string): Promise<void> {
   }
   catch (err) {
     console.error(`[Reqcore] failed to release assistant reservation ${rowId}.`, err)
+  }
+}
+
+/**
+ * Every ledger feature except the assistant: a single call whose whole cost is
+ * known once it returns, so it needs no reservation.
+ */
+export type OneShotAiFeature = Exclude<
+  (typeof aiUsageFeatureEnum.enumValues)[number],
+  'chatbot_message'
+>
+
+export interface RecordAiGenerationInput {
+  orgId: string
+  userId?: string | null
+  feature: OneShotAiFeature
+  provider: string
+  model: string
+  billingMode: 'platform' | 'byok'
+  /** Null for a call that failed before reporting usage. */
+  usage: { promptTokens: number, completionTokens: number } | null
+  latencyMs: number
+  status: 'completed' | 'failed'
+}
+
+/**
+ * Record one completed (or failed) generation in both places it has to land:
+ * the spend ledger the budget gate reads, and PostHog's behavioural view.
+ *
+ * They are one call because they were forgotten together — a surface that skips
+ * the ledger is invisible to the daily kill-switch, which is the one cap meant
+ * to cover every surface. Metered in dollars, so `creditsCharged` stays null;
+ * credits are the assistant's unit alone.
+ *
+ * This is post-spend by nature. Concurrent calls can each pass the pre-spend
+ * gate before any of them writes a row, so the ceiling holds to within the
+ * in-flight requests a surface's rate limiter allows — the same guarantee
+ * analysis runs have, and why the per-call maxTokens cap exists.
+ */
+export async function recordAiGeneration(input: RecordAiGenerationInput): Promise<void> {
+  const promptTokens = input.usage?.promptTokens ?? 0
+  const completionTokens = input.usage?.completionTokens ?? 0
+  const costUsdMicros = input.usage
+    ? computeCostUsdMicros(input.model, promptTokens, completionTokens)
+    : null
+
+  captureAiGeneration({
+    orgId: input.orgId,
+    userId: input.userId,
+    feature: input.feature,
+    provider: input.provider,
+    model: input.model,
+    billingMode: input.billingMode,
+    promptTokens,
+    completionTokens,
+    costUsdMicros,
+    latencyMs: input.latencyMs,
+    status: input.status,
+  })
+
+  // A call that never reported usage has no spend to add — the provider bills
+  // per token, and a row of zeros would only dilute the ledger.
+  if (!input.usage) return
+
+  try {
+    await db.insert(aiUsageEvent).values({
+      organizationId: input.orgId,
+      userId: input.userId ?? null,
+      feature: input.feature,
+      provider: input.provider,
+      model: input.model,
+      billingMode: input.billingMode,
+      promptTokens,
+      completionTokens,
+      costUsdMicros,
+      creditsCharged: null,
+    })
+  }
+  catch (err) {
+    console.error(
+      `[Reqcore] failed to record ${input.feature} usage for org ${input.orgId} `
+      + `(${input.model}). This spend is invisible to the daily kill-switch.`,
+      err,
+    )
   }
 }

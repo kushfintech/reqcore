@@ -1481,24 +1481,6 @@ function closeDocPreview() {
       <!-- Quick actions teleported to sub-nav bar -->
       <JobSubNavActions :job-id="jobId" />
 
-      <!-- Keyboard shortcut hints in sub-nav bar (pipeline-specific) -->
-      <Teleport to="#job-sub-nav-actions">
-        <div class="hidden sm:flex items-center gap-2 text-[10px] font-medium text-surface-400 dark:text-surface-500">
-          <div class="flex items-center gap-1 rounded-md bg-surface-100/80 px-2 py-0.5 dark:bg-surface-800/60">
-            <span class="font-mono text-[10px]">↑↓</span>
-            <span>candidates</span>
-          </div>
-          <div class="flex items-center gap-1 rounded-md bg-surface-100/80 px-2 py-0.5 dark:bg-surface-800/60">
-            <span class="font-mono text-[10px]">←→</span>
-            <span>stages</span>
-          </div>
-          <div class="flex items-center gap-1 rounded-md bg-surface-100/80 px-2 py-0.5 dark:bg-surface-800/60">
-            <span class="font-mono text-[10px]">1-9</span>
-            <span>actions</span>
-          </div>
-        </div>
-      </Teleport>
-
       <!-- ═══════════════════════════════════════ -->
       <!-- PIPELINE STATUS TABS                     -->
       <!-- ═══════════════════════════════════════ -->
@@ -1532,9 +1514,25 @@ function closeDocPreview() {
             </span>
           </button>
 
+          <!-- Keyboard shortcut hints -->
+          <div class="ml-auto hidden shrink-0 items-center gap-2 text-[10px] font-medium text-surface-400 sm:flex dark:text-surface-500">
+            <div class="flex items-center gap-1 rounded-md bg-surface-100/80 px-2 py-0.5 dark:bg-surface-800/60">
+              <span class="font-mono text-[10px]">↑↓</span>
+              <span>candidates</span>
+            </div>
+            <div class="flex items-center gap-1 rounded-md bg-surface-100/80 px-2 py-0.5 dark:bg-surface-800/60">
+              <span class="font-mono text-[10px]">←→</span>
+              <span>stages</span>
+            </div>
+            <div class="flex items-center gap-1 rounded-md bg-surface-100/80 px-2 py-0.5 dark:bg-surface-800/60">
+              <span class="font-mono text-[10px]">1-9</span>
+              <span>actions</span>
+            </div>
+          </div>
+
           <!-- Fullscreen toggle -->
           <button
-            class="ml-auto flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-2 text-surface-400 hover:bg-surface-100 hover:text-surface-600 dark:text-surface-500 dark:hover:bg-surface-800 dark:hover:text-surface-300 transition-all duration-200 focus:outline-none"
+            class="ml-auto flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-2 text-surface-400 transition-all duration-200 hover:bg-surface-100 hover:text-surface-600 focus:outline-none sm:ml-0 dark:text-surface-500 dark:hover:bg-surface-800 dark:hover:text-surface-300"
             :title="isFullscreen ? 'Exit focus mode (Esc)' : 'Focus mode'"
             @click="toggleFullscreen"
           >

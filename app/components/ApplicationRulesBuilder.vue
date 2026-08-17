@@ -1,5 +1,17 @@
 <script setup lang="ts">
-import { Plus, Trash2, ChevronUp, ChevronDown, Zap, AlertTriangle, PlayCircle } from 'lucide-vue-next'
+import {
+  Plus,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  Zap,
+  AlertTriangle,
+  PlayCircle,
+  Sparkles,
+  Loader2,
+  ShieldCheck,
+  RotateCcw,
+} from 'lucide-vue-next'
 import {
   OPERATOR_META,
   OPERATORS_BY_QUESTION_TYPE,
@@ -21,16 +33,22 @@ interface FormQuestion {
   options?: string[] | null
 }
 
+type AiGenerationState = 'idle' | 'running' | 'done' | 'failed' | 'unavailable'
+
 const props = defineProps<{
   questions: FormQuestion[]
   serverRules: ApplicationRule[]
   saving: boolean
   running: boolean
+  aiGenerationState: AiGenerationState
+  aiGenerationError: string | null
+  aiGeneratedDraft: { id: number, rules: ApplicationRuleInput[] } | null
 }>()
 
 const emit = defineEmits<{
   save: [rules: ApplicationRuleInput[]]
   run: []
+  generate: []
 }>()
 
 // ─────────────────────────────────────────────
@@ -51,7 +69,7 @@ interface DraftRule {
 
 const key = () => crypto.randomUUID()
 
-function toDraft(rules: ApplicationRule[]): DraftRule[] {
+function toDraft(rules: ApplicationRuleInput[]): DraftRule[] {
   return rules.map(r => ({
     _key: key(),
     name: r.name,
@@ -63,10 +81,14 @@ function toDraft(rules: ApplicationRule[]): DraftRule[] {
 }
 
 const draft = ref<DraftRule[]>(toDraft(props.serverRules))
+const previousDraft = ref<ApplicationRuleInput[] | null>(null)
+const aiDraftApplied = ref(false)
 
 // Reset the draft whenever the server set changes (after a save/refresh).
 watch(() => props.serverRules, (rules) => {
   draft.value = toDraft(rules)
+  previousDraft.value = null
+  aiDraftApplied.value = false
 }, { deep: true })
 
 // ─────────────────────────────────────────────
@@ -81,6 +103,20 @@ function toPayload(rules: DraftRule[]): ApplicationRuleInput[] {
     enabled: r.enabled,
     conditions: r.conditions.map(({ _key, ...c }) => c),
   }))
+}
+
+watch(() => props.aiGeneratedDraft?.id, (id) => {
+  if (!id || !props.aiGeneratedDraft) return
+  previousDraft.value = toPayload(draft.value)
+  draft.value = toDraft(props.aiGeneratedDraft.rules)
+  aiDraftApplied.value = true
+})
+
+function undoAiDraft() {
+  if (!previousDraft.value) return
+  draft.value = toDraft(previousDraft.value)
+  previousDraft.value = null
+  aiDraftApplied.value = false
 }
 
 const serverPayload = computed(() => JSON.stringify(
@@ -231,16 +267,74 @@ const inputClass = selectClass + ' min-w-0'
 <template>
   <div>
     <!-- Intro -->
-    <div class="mb-5 flex items-start gap-3">
+    <div class="mb-5 flex flex-wrap items-start gap-3">
       <div class="mt-0.5 rounded-lg bg-brand-50 dark:bg-brand-950/50 p-2 ring-1 ring-inset ring-brand-100 dark:ring-brand-900">
         <Zap class="size-4 text-brand-600 dark:text-brand-400" />
       </div>
-      <div>
+      <div class="min-w-0 flex-1">
         <h2 class="text-sm font-semibold text-surface-900 dark:text-surface-100">Automation rules</h2>
         <p class="mt-0.5 text-sm text-surface-500 dark:text-surface-400 max-w-2xl">
           Automatically set an applicant's status the moment they apply, based on their answers.
           Rules run top to bottom — the first one that matches wins.
         </p>
+      </div>
+      <button
+        type="button"
+        :disabled="questions.length === 0 || aiGenerationState === 'running'"
+        class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-brand-800 dark:bg-surface-900 dark:text-brand-300 dark:hover:bg-brand-950/50"
+        :title="questions.length === 0 ? 'Add screening questions first' : undefined"
+        @click="emit('generate')"
+      >
+        <Loader2 v-if="aiGenerationState === 'running'" class="size-4 animate-spin" />
+        <Sparkles v-else class="size-4" />
+        <template v-if="aiGenerationState === 'running'">Generating…</template>
+        <template v-else-if="aiGenerationState === 'failed' || aiGenerationState === 'unavailable'">Try again</template>
+        <template v-else-if="draft.length > 0">Regenerate with AI</template>
+        <template v-else>Generate with AI</template>
+      </button>
+    </div>
+
+    <div
+      v-if="aiGenerationState === 'running' || aiDraftApplied || aiGenerationState === 'failed' || aiGenerationState === 'unavailable'"
+      class="mb-5 rounded-lg border p-3"
+      :class="aiGenerationState === 'failed' || aiGenerationState === 'unavailable'
+        ? 'border-danger-200 bg-danger-50 dark:border-danger-900 dark:bg-danger-950/30'
+        : 'border-brand-100 bg-brand-50/60 dark:border-brand-900 dark:bg-brand-950/30'"
+      aria-live="polite"
+    >
+      <div class="flex items-start gap-2.5">
+        <Loader2
+          v-if="aiGenerationState === 'running'"
+          class="mt-0.5 size-4 shrink-0 animate-spin text-brand-600 dark:text-brand-400"
+        />
+        <AlertTriangle
+          v-else-if="aiGenerationState === 'failed' || aiGenerationState === 'unavailable'"
+          class="mt-0.5 size-4 shrink-0 text-danger-600 dark:text-danger-400"
+        />
+        <ShieldCheck v-else class="mt-0.5 size-4 shrink-0 text-brand-600 dark:text-brand-400" />
+
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-medium text-surface-700 dark:text-surface-300">
+            <template v-if="aiGenerationState === 'running'">AI is matching objective job requirements to your screening questions.</template>
+            <template v-else-if="aiGenerationState === 'failed' || aiGenerationState === 'unavailable'">AI couldn't draft automation rules.</template>
+            <template v-else>AI drafted these rules from the job description.</template>
+          </p>
+          <p class="mt-1 text-xs leading-relaxed text-surface-500 dark:text-surface-400">
+            <template v-if="aiGenerationError">{{ aiGenerationError }}</template>
+            <template v-else-if="aiGenerationState === 'running'">Your current rules stay unchanged until the draft is ready.</template>
+            <template v-else>Review every condition and action. The draft is not active until you save it.</template>
+          </p>
+        </div>
+
+        <button
+          v-if="aiDraftApplied && previousDraft"
+          type="button"
+          class="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100 dark:text-brand-300 dark:hover:bg-brand-900/60"
+          @click="undoAiDraft"
+        >
+          <RotateCcw class="size-3.5" />
+          Undo
+        </button>
       </div>
     </div>
 

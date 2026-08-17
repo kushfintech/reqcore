@@ -5,9 +5,11 @@ import { BILLING_PLANS, type BillingPlanId } from '~~/shared/billing'
 
 const props = withDefaults(defineProps<{
   compact?: boolean
+  liftOnHover?: boolean
   onDark?: boolean
 }>(), {
   compact: false,
+  liftOnHover: true,
   onDark: false,
 })
 
@@ -67,8 +69,9 @@ const options = computed(() => [
       v-for="option in options"
       :key="option.id"
       :to="option.to"
-      class="group relative flex items-start gap-3 rounded-lg border p-3 text-left no-underline transition-all duration-200 hover:-translate-y-px hover:shadow-lg"
+      class="group relative flex items-start gap-3 rounded-lg border p-3 text-left no-underline transition-all duration-200 hover:shadow-lg"
       :class="[
+        props.liftOnHover ? 'hover:-translate-y-px' : '',
         props.onDark ? 'bg-white/[0.04]' : 'bg-white dark:bg-surface-950',
         option.featured
           ? props.onDark

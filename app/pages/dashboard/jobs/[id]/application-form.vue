@@ -48,6 +48,7 @@ async function copyApplicationLink() {
 
 const {
   questions: jobQuestions,
+  refresh: refreshJobQuestions,
   addQuestion,
   updateQuestion,
   deleteQuestion,
@@ -65,6 +66,8 @@ type BuilderQuestion = {
   description?: string | null
   required: boolean
   options?: string[] | null
+  /** Applicant answers that would be destroyed if this question is deleted. */
+  responseCount?: number
 }
 
 const builderModel = ref<{
@@ -91,6 +94,7 @@ watch(jobQuestions, (qs) => {
     description: q.description ?? null,
     required: q.required,
     options: q.options ?? null,
+    responseCount: q.responseCount ?? 0,
   }))
 }, { immediate: true })
 
@@ -102,6 +106,132 @@ const builderOperations = {
   setPhoneRequirement: (value: 'hidden' | 'optional' | 'required') => updateJob({ phoneRequirement: value }),
   setRequireResume: (value: boolean) => updateJob({ requireResume: value }),
   setRequireCoverLetter: (value: boolean) => updateJob({ requireCoverLetter: value }),
+}
+
+type AiQuestionGenerationState = 'idle' | 'running' | 'done' | 'failed' | 'unavailable'
+type AiQuestionGenerationMode = 'fill_gaps' | 'replace'
+type GeneratedQuestionsResponse = {
+  questions: BuilderQuestion[]
+  source: 'ai' | 'ai_import'
+  mode?: AiQuestionGenerationMode
+  emptyReason?: 'insufficient_description' | 'no_grounded_questions' | 'no_gaps' | null
+}
+
+/**
+ * The server refuses to cascade-delete applicant answers without an explicit
+ * acknowledgement of the count. Confirming in the dialog normally satisfies it,
+ * so this only fires when answers landed while the model was still working.
+ */
+function unacknowledgedAnswerDeletion(err: any): boolean {
+  return (err?.data?.data ?? err?.data)?.code === 'applicant_answers_will_be_deleted'
+}
+
+const aiQuestionGenerationState = ref<AiQuestionGenerationState>('idle')
+const aiQuestionGenerationError = ref<string | null>(null)
+const aiQuestionImportState = ref<AiQuestionGenerationState>('idle')
+const aiQuestionImportError = ref<string | null>(null)
+
+async function generateAiQuestions(
+  mode: AiQuestionGenerationMode = 'replace',
+  acknowledgeAnswerDeletion = false,
+) {
+  if (aiQuestionGenerationState.value === 'running' || aiQuestionImportState.value === 'running') return
+
+  const replacing = mode === 'replace' && builderModel.value.questions.length > 0
+
+  aiQuestionGenerationState.value = 'running'
+  aiQuestionGenerationError.value = null
+
+  try {
+    const result = await $fetch<GeneratedQuestionsResponse>(`/api/jobs/${jobId}/questions/generate`, {
+      method: 'POST',
+      body: { mode, acknowledgeAnswerDeletion },
+    })
+    await refreshJobQuestions()
+    aiQuestionGenerationState.value = 'done'
+    if (result.questions.length === 0) {
+      if (result.emptyReason === 'insufficient_description') {
+        aiQuestionGenerationError.value = 'No questions were generated because the description lacks concrete job-related details.'
+        toast.info('Not enough job detail', 'Add concrete duties, skills, or qualifications before generating screening questions.')
+      }
+      else if (mode === 'fill_gaps') {
+        aiQuestionGenerationError.value = 'No questions were added because the current form already covers the grounded requirements.'
+        toast.info('No missing questions found', 'The current questions already cover the meaningful requirements in the job description.')
+      }
+      else {
+        aiQuestionGenerationError.value = 'No questions were generated because the description did not support useful, role-related questions.'
+        toast.info('No grounded questions found', 'The job description does not support any useful screening questions. Add questions manually or make the description more specific.')
+      }
+    }
+    else if (mode === 'fill_gaps') {
+      toast.success(`${result.questions.length} missing ${result.questions.length === 1 ? 'question' : 'questions'} added`)
+    }
+    else {
+      toast.success(replacing ? 'Screening questions replaced' : 'Screening questions generated')
+    }
+  }
+  catch (err: any) {
+    const statusCode = err?.data?.statusCode ?? err?.statusCode
+    const statusMessage = err?.data?.statusMessage ?? err?.statusMessage ?? err?.message
+    const providerUnavailable = statusCode === 422 && /provider|openrouter|ai is not available|removed/i.test(statusMessage ?? '')
+    const staleAnswerCount = unacknowledgedAnswerDeletion(err)
+
+    // Pull the newer answer count in so the next confirmation names it.
+    if (staleAnswerCount) await refreshJobQuestions()
+
+    aiQuestionGenerationState.value = providerUnavailable ? 'unavailable' : 'failed'
+    aiQuestionGenerationError.value = providerUnavailable
+      ? 'No AI provider is available. Configure one in Settings → AI, then try again.'
+      : staleAnswerCount
+        ? 'No questions were changed. New applicant answers arrived while AI was working — confirm the updated count to continue.'
+        : 'No questions were changed. Try again, or edit the questions manually.'
+    toast.error('Failed to generate questions', {
+      message: aiQuestionGenerationError.value,
+      details: statusMessage || `${statusCode ?? 'Unknown'} error — no additional details from server.`,
+      statusCode,
+    })
+  }
+}
+
+async function importAiQuestions(sourceText: string, acknowledgeAnswerDeletion = false) {
+  if (aiQuestionImportState.value === 'running' || aiQuestionGenerationState.value === 'running') return
+
+  const replacing = builderModel.value.questions.length > 0
+  aiQuestionImportState.value = 'running'
+  aiQuestionImportError.value = null
+
+  try {
+    const result = await $fetch<GeneratedQuestionsResponse>(`/api/jobs/${jobId}/questions/import`, {
+      method: 'POST',
+      body: { sourceText, replaceExisting: replacing, acknowledgeAnswerDeletion },
+    })
+    await refreshJobQuestions()
+    aiQuestionGenerationState.value = 'idle'
+    aiQuestionGenerationError.value = null
+    aiQuestionImportState.value = 'done'
+    toast.success(`${result.questions.length} screening ${result.questions.length === 1 ? 'question' : 'questions'} created`)
+  }
+  catch (err: any) {
+    const statusCode = err?.data?.statusCode ?? err?.statusCode
+    const statusMessage = err?.data?.statusMessage ?? err?.statusMessage ?? err?.message
+    const providerUnavailable = statusCode === 422 && /provider|openrouter|ai is not available|removed/i.test(statusMessage ?? '')
+    const staleAnswerCount = unacknowledgedAnswerDeletion(err)
+
+    // Pull the newer answer count in so the next confirmation names it.
+    if (staleAnswerCount) await refreshJobQuestions()
+
+    aiQuestionImportState.value = providerUnavailable ? 'unavailable' : 'failed'
+    aiQuestionImportError.value = providerUnavailable
+      ? 'No AI provider is available. Configure one in Settings → AI, then try again.'
+      : staleAnswerCount
+        ? 'No questions were changed. New applicant answers arrived while AI was working — confirm the updated count to continue.'
+        : 'No questions were changed. Check the pasted text and try again.'
+    toast.error('Failed to import questions', {
+      message: aiQuestionImportError.value,
+      details: statusMessage || `${statusCode ?? 'Unknown'} error — no additional details from server.`,
+      statusCode,
+    })
+  }
 }
 
 </script>
@@ -168,6 +298,12 @@ const builderOperations = {
               :job-title="job.title"
               :operations="builderOperations"
               :show-preview="false"
+              :ai-question-generation-state="aiQuestionGenerationState"
+              :ai-question-generation-error="aiQuestionGenerationError"
+              :ai-question-import-state="aiQuestionImportState"
+              :ai-question-import-error="aiQuestionImportError"
+              @generate-ai-questions="generateAiQuestions"
+              @import-ai-questions="importAiQuestions"
             />
           </div>
         </div>

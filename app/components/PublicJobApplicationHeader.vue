@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Briefcase, Building2, MapPin } from 'lucide-vue-next'
+import { Briefcase, Building2, ChevronDown, MapPin } from 'lucide-vue-next'
 
 defineProps<{
   job: {
@@ -12,6 +12,37 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
+
+/** Roughly four lines of `.job-prose` body text (0.9375rem × 1.7). */
+const COLLAPSED_HEIGHT = 104
+
+const descriptionContent = useTemplateRef<HTMLElement>('descriptionContent')
+const expanded = ref(false)
+const contentHeight = ref<number | null>(null)
+// Assume the description is long enough to clamp until we can measure it, so
+// the server-rendered markup already shows the collapsed state.
+const overflows = ref(true)
+
+const collapsed = computed(() => overflows.value && !expanded.value)
+
+const descriptionStyle = computed(() => {
+  if (collapsed.value) return { maxHeight: `${COLLAPSED_HEIGHT}px` }
+  if (contentHeight.value === null) return {}
+  return { maxHeight: `${contentHeight.value}px` }
+})
+
+onMounted(() => {
+  const el = descriptionContent.value
+  if (!el) return
+
+  const observer = new ResizeObserver(() => {
+    contentHeight.value = el.scrollHeight
+    // A couple of pixels of overshoot isn't worth a toggle.
+    overflows.value = el.scrollHeight - COLLAPSED_HEIGHT > 8
+  })
+  observer.observe(el)
+  onBeforeUnmount(() => observer.disconnect())
+})
 
 const typeLabels = computed<Record<string, string>>(() => ({
   full_time: t('career.type.full_time'),
@@ -52,7 +83,33 @@ const typeLabels = computed<Record<string, string>>(() => ({
       </h1>
 
       <div v-if="job.description" class="mt-5 border-t border-surface-100 pt-5 dark:border-surface-800">
-        <MarkdownDescription :value="job.description" />
+        <div class="relative">
+          <div
+            id="job-description"
+            class="overflow-hidden transition-[max-height] duration-300 ease-out"
+            :style="descriptionStyle"
+          >
+            <div ref="descriptionContent">
+              <MarkdownDescription :value="job.description" />
+            </div>
+          </div>
+          <div
+            v-if="collapsed"
+            class="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white to-transparent dark:from-surface-900"
+          />
+        </div>
+
+        <button
+          v-if="overflows"
+          type="button"
+          class="mt-3 inline-flex items-center gap-1.5 rounded-lg text-sm font-medium text-brand-600 transition-colors hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:text-brand-300"
+          :aria-expanded="expanded"
+          aria-controls="job-description"
+          @click="expanded = !expanded"
+        >
+          {{ expanded ? t('career.showLess') : t('career.readFullDescription') }}
+          <ChevronDown class="size-4 transition-transform" :class="{ 'rotate-180': expanded }" />
+        </button>
       </div>
     </div>
   </div>

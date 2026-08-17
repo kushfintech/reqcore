@@ -415,6 +415,36 @@ export async function assertPlatformBudget(orgId: string): Promise<void> {
   assertDailyCap(daySpend, 'analysis')
 }
 
+/**
+ * The gate as a request-handling endpoint needs it: a no-op for BYOK, and an
+ * HTTP-shaped refusal for platform-paid work.
+ *
+ * Every user-facing surface that can spend platform money calls exactly this,
+ * immediately after resolving the provider and before the model call. Endpoints
+ * that inline the check instead are how a surface ends up ungated — the whole
+ * gate is one line, so there is no reason to write it out. Background work
+ * (auto-scoring) still calls `assertPlatformBudget` directly: nobody is waiting
+ * on a response, so a breach skips silently instead of raising.
+ */
+export async function assertPlatformBudgetForRequest(
+  orgId: string,
+  billingMode: 'platform' | 'byok',
+): Promise<void> {
+  if (billingMode !== 'platform') return
+
+  try {
+    await assertPlatformBudget(orgId)
+  }
+  catch (err) {
+    if (err instanceof BudgetExceededError) throw budgetErrorToHttp(err)
+    // Fail closed: an unreadable ledger must not become an uncapped bill.
+    throw createError({
+      statusCode: 503,
+      statusMessage: 'AI budget check failed. Please try again later.',
+    })
+  }
+}
+
 /** Global daily kill-switch — one cap across all orgs. */
 function assertDailyCap(daySpend: number, feature: BudgetFeature = 'analysis'): void {
   const capUsd = dailyCapUsd()

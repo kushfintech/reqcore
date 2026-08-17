@@ -87,7 +87,7 @@ test.describe('Job Creation Flow', () => {
     await continueButton.click()
 
     await page.getByRole('button', { name: 'Add a question', exact: true }).click()
-    await page.getByLabel('Question').fill('Preferred test framework?')
+    await page.getByRole('textbox', { name: 'Question' }).fill('Preferred test framework?')
     await page.getByLabel('Field Type').selectOption('single_select')
     await page.getByPlaceholder('Option 1').fill('Playwright')
     await page.getByRole('button', { name: 'Add option' }).click()
@@ -157,7 +157,7 @@ test.describe('Job Creation Flow', () => {
 
     // Add a required single-select question and verify it appears in the preview.
     await page.getByRole('button', { name: 'Add a question', exact: true }).click()
-    await page.getByLabel('Question').fill(QUESTION_LABEL)
+    await page.getByRole('textbox', { name: 'Question' }).fill(QUESTION_LABEL)
     await page.getByLabel('Field Type').selectOption('single_select')
     await page.getByPlaceholder('Option 1').fill('Playwright')
     await page.getByRole('button', { name: 'Add option' }).click()
@@ -173,7 +173,7 @@ test.describe('Job Creation Flow', () => {
 
     // Editing must update both the builder row and the candidate preview.
     await page.getByTitle('Edit').click()
-    await page.getByLabel('Question').fill(UPDATED_QUESTION_LABEL)
+    await page.getByRole('textbox', { name: 'Question' }).fill(UPDATED_QUESTION_LABEL)
     await page.getByRole('button', { name: 'Update', exact: true }).click()
     await expect(preview.getByLabel(UPDATED_QUESTION_LABEL)).toBeVisible()
     await expect(preview.getByLabel(QUESTION_LABEL)).toHaveCount(0)
