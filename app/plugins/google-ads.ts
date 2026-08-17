@@ -1,7 +1,7 @@
 /**
  * Google Ads tag (gtag.js) — conversion tracking for the PPC campaign.
  *
- * Only loads when NUXT_PUBLIC_GOOGLE_ADS_ID is set, which is Reqcore Cloud
+ * Only loads when NUXT_PUBLIC_GOOGLE_ADS_ID is set, which is Kush Talents Cloud
  * only. Self-hosted deployments get no Google tag and no outbound request.
  *
  * This plugin is universal, not client-only, on purpose: the consent snippet

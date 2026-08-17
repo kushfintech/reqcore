@@ -132,7 +132,7 @@ export const job = pgTable('job', {
    * It behaves like any other job inside the workspace — it opens, collects
    * applications and gets scored — but it is excluded from every surface a real
    * candidate or an aggregator can reach: the public board, career pages, the
-   * sitemap and /jobs.xml. That is the whole point: someone evaluating Reqcore
+   * sitemap and /jobs.xml. That is the whole point: someone evaluating Kush Talents
    * can walk the real create-a-job flow without their practice run turning into
    * a listing the world sees, which is what fills the board with "test" and
    * "asdf" roles today.
@@ -658,12 +658,16 @@ export const interview = pgTable('interview', {
  * Each org can create custom templates or use the system defaults.
  * Template body supports placeholder variables like {{candidateName}}, {{jobTitle}}, etc.
  */
+/** Whether a template is for interview invitations or candidate rejections. */
+export const templateCategoryEnum = pgEnum('template_category', ['interview', 'rejection'])
+
 export const emailTemplate = pgTable('email_template', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   organizationId: text('organization_id').notNull().references(() => organization.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   subject: text('subject').notNull(),
   body: text('body').notNull(),
+  category: templateCategoryEnum('category').notNull().default('interview'),
   createdById: text('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -1589,7 +1593,7 @@ export const chatbotConversation = pgTable('chatbot_conversation', {
   /** AI configuration last used for this conversation. Falls back to org chatbot default. */
   aiConfigId: text('ai_config_id').references(() => aiConfig.id, { onDelete: 'set null' }),
   /**
-   * The platform ("Reqcore AI") engine is pinned to this conversation. It cannot
+   * The platform ("Kush Talents AI") engine is pinned to this conversation. It cannot
    * live in `aiConfigId` — that column is a real FK to ai_config and the platform
    * engine has no row there — so the choice needs its own flag. Mutually
    * exclusive with aiConfigId; the API clears one when setting the other.
@@ -1701,7 +1705,7 @@ export const chatbotMessageEntityReferenceRelations = relations(chatbotMessageEn
  *
  * Customization is deliberately guardrailed: the org supplies identity only —
  * its logo and name (already on `organization`), one accent color, an optional
- * headline and short description, and an on/off switch. Reqcore owns the
+ * headline and short description, and an on/off switch. Kush Talents owns the
  * layout. No fonts, CSS, or layout controls are exposed. Custom domain is a
  * later paid upgrade, not this table.
  *

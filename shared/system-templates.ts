@@ -4,6 +4,8 @@ export interface SystemTemplate {
   description: string
   subject: string
   body: string
+  /** Which flow this template belongs to. Omitted = interview (back-compat). */
+  category?: 'interview' | 'rejection'
 }
 
 export const SYSTEM_TEMPLATES: SystemTemplate[] = [
@@ -79,6 +81,61 @@ To help you prepare:
 - Feel free to ask questions about our tech stack and development practices
 
 Please confirm your attendance by replying to this email.
+
+Best regards,
+{{organizationName}}`,
+  },
+  {
+    id: 'system-rejection-standard',
+    name: 'Standard Rejection',
+    description: 'A professional, respectful decline suitable for most situations.',
+    category: 'rejection',
+    subject: 'Update on your application for {{jobTitle}}',
+    body: `Dear {{candidateName}},
+
+Thank you for your interest in the {{jobTitle}} position at {{organizationName}} and for taking the time to apply.
+
+After careful consideration, we have decided not to move forward with your application at this time. This was a difficult decision, as we received many strong applications.
+
+We genuinely appreciate the effort you put into your application and encourage you to apply for future openings that match your experience.
+
+We wish you all the best in your job search.
+
+Best regards,
+{{organizationName}}`,
+  },
+  {
+    id: 'system-rejection-warm',
+    name: 'Warm & Encouraging',
+    description: 'A kind, personable decline that leaves the door open.',
+    category: 'rejection',
+    subject: 'Thank you for applying to {{jobTitle}}',
+    body: `Hi {{candidateFirstName}},
+
+Thank you so much for your interest in the {{jobTitle}} role at {{organizationName}} — it was a pleasure learning about your background.
+
+After thoughtful review, we've decided to proceed with other candidates whose experience more closely matched what we need for this particular role. Please know this is not a reflection of your abilities.
+
+We'd love to stay in touch and hope you'll consider applying again as our team grows.
+
+Warm regards,
+The {{organizationName}} Team`,
+  },
+  {
+    id: 'system-rejection-post-interview',
+    name: 'After Interview',
+    description: 'For candidates you interviewed but are not moving forward with.',
+    category: 'rejection',
+    subject: 'Regarding your interview for {{jobTitle}}',
+    body: `Dear {{candidateName}},
+
+Thank you for taking the time to interview for the {{jobTitle}} position at {{organizationName}}. We enjoyed getting to know you and learning more about your experience.
+
+After careful consideration, we have decided to move forward with another candidate for this role. This decision was not easy given the caliber of candidates we spoke with.
+
+We were genuinely impressed by you and would welcome the opportunity to consider you for future roles that fit your skills.
+
+Thank you again, and we wish you continued success.
 
 Best regards,
 {{organizationName}}`,

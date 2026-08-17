@@ -130,7 +130,7 @@ export async function reserveChatbotUsage(
   catch (err) {
     if (err instanceof ChatbotPromptLimitReachedError) throw err
     console.error(
-      `[Reqcore] failed to reserve assistant usage for org ${input.orgId} `
+      `[Kush Talents] failed to reserve assistant usage for org ${input.orgId} `
       + `(${input.model}). This turn is invisible to the allowance gate.`,
       err,
     )
@@ -161,7 +161,7 @@ export async function settleChatbotUsage(
     // The reservation stands, so we over-charge rather than under-charge. That
     // is the right way round to fail, but it's still a customer-visible error.
     console.error(
-      `[Reqcore] failed to settle assistant usage row ${rowId}; `
+      `[Kush Talents] failed to settle assistant usage row ${rowId}; `
       + `the up-front estimated charge stands.`,
       err,
     )
@@ -174,7 +174,7 @@ export async function releaseChatbotUsage(rowId: string): Promise<void> {
     await db.delete(aiUsageEvent).where(eq(aiUsageEvent.id, rowId))
   }
   catch (err) {
-    console.error(`[Reqcore] failed to release assistant reservation ${rowId}.`, err)
+    console.error(`[Kush Talents] failed to release assistant reservation ${rowId}.`, err)
   }
 }
 
@@ -255,7 +255,7 @@ export async function recordAiGeneration(input: RecordAiGenerationInput): Promis
   }
   catch (err) {
     console.error(
-      `[Reqcore] failed to record ${input.feature} usage for org ${input.orgId} `
+      `[Kush Talents] failed to record ${input.feature} usage for org ${input.orgId} `
       + `(${input.model}). This spend is invisible to the daily kill-switch.`,
       err,
     )

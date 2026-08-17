@@ -26,7 +26,7 @@ useSeoMeta({
   ogTitle: t('jobs.list.ogTitle'),
   ogDescription: t('jobs.list.ogDescription'),
   ogType: 'website',
-  ogImage: '/reqcore-banner-github.jpeg',
+  ogImage: '/kush-og-banner.jpeg',
   twitterCard: 'summary_large_image',
   twitterTitle: t('jobs.list.ogTitle'),
   twitterDescription: t('jobs.list.twitterDescription'),

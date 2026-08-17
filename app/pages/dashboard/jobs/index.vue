@@ -11,7 +11,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'My Jobs — Reqcore',
+  title: 'My Jobs — Kush Talents',
   description: 'Your active job postings',
 })
 

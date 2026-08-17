@@ -69,7 +69,7 @@ useSeoMeta({
   }),
   ogType: 'website',
   ogUrl: () => canonicalUrl.value,
-  ogImage: '/reqcore-banner-github.jpeg',
+  ogImage: '/kush-og-banner.jpeg',
   twitterCard: 'summary_large_image',
   twitterTitle: computed(() => job.value?.title ?? t('jobs.detail.metaTitleFallback')),
   twitterDescription: computed(() => {
@@ -127,7 +127,7 @@ const jobPostingJsonLd = computed(() => {
     'description': markdownToFeedHtml(j.description) || jobDescriptionPlain.value || j.title,
     'identifier': {
       '@type': 'PropertyValue',
-      'name': j.organizationName ?? 'Reqcore',
+      'name': j.organizationName ?? 'Kush Talents',
       'value': j.id,
     },
     // `publishedAt` is when the role actually went live. `createdAt` would date

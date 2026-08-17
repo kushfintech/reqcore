@@ -63,7 +63,7 @@ const aiSettingsTarget = computed(() => localePath('/dashboard/settings/ai'))
           </h2>
           <p v-if="onFreePlan" class="mt-1 max-w-xl text-sm leading-relaxed text-surface-600 dark:text-surface-300">
             Your workspace has used all 20 free assistant prompts. Your conversations are safe and stay readable.
-            Solo adds a monthly Reqcore AI allowance, or you can connect your own AI key.
+            Solo adds a monthly Kush Talents AI allowance, or you can connect your own AI key.
           </p>
           <p v-else class="mt-1 max-w-xl text-sm leading-relaxed text-surface-600 dark:text-surface-300">
             Your workspace has used this month's assistant credits. They renew at the start of next month,

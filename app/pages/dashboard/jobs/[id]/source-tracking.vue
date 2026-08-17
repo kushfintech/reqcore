@@ -15,7 +15,7 @@ const { job, status: fetchStatus, error } = useJob(jobId)
 
 useSeoMeta({
   title: computed(() =>
-    job.value ? `Source Tracking — ${job.value.title} — Reqcore` : 'Source Tracking — Reqcore',
+    job.value ? `Source Tracking — ${job.value.title} — Kush Talents` : 'Source Tracking — Kush Talents',
   ),
 })
 

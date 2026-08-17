@@ -12,7 +12,7 @@ import {
 definePageMeta({})
 
 useSeoMeta({
-  title: 'Notification Settings — Reqcore',
+  title: 'Notification Settings — Kush Talents',
   description: 'Choose which recruiter events email you, and whether instantly or in a daily digest',
 })
 

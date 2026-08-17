@@ -40,8 +40,8 @@ useSeoMeta({
   title: computed(() => {
     if (props.variant !== 'page') return undefined
     return application.value
-      ? `${application.value.candidate.firstName} ${application.value.candidate.lastName} → ${application.value.job.title} — Reqcore`
-      : 'Application — Reqcore'
+      ? `${application.value.candidate.firstName} ${application.value.candidate.lastName} → ${application.value.job.title} — Kush Talents`
+      : 'Application — Kush Talents'
   }),
 })
 
@@ -204,6 +204,23 @@ async function changeStatus(newStatus: string) {
   } finally {
     isMutating.value = false
   }
+}
+
+// ─── Rejection email ──────────────────────────
+const showRejectionModal = ref(false)
+
+// Open the rejection modal first so the user can pick a template / email
+// (or skip). The actual status change happens on send/skip, never on cancel.
+function rejectCandidate() {
+  if (!application.value || isMutating.value) return
+  showRejectionModal.value = true
+}
+
+// Called after the email is sent OR the user skips emailing — either way the
+// candidate moves to rejected. Cancelling (X / backdrop) does neither.
+async function finalizeRejection() {
+  showRejectionModal.value = false
+  await changeStatus('rejected')
 }
 
 // ─────────────────────────────────────────────
@@ -729,7 +746,7 @@ function scoreClass(score: number) {
             :disabled="isMutating"
             class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm inline-flex items-center gap-1.5"
             :class="transitionClasses[nextStatus] ?? 'border border-surface-300 dark:border-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800'"
-            @click="nextStatus === 'interview' ? openInterviewSchedulerForStatus() : changeStatus(nextStatus)"
+            @click="nextStatus === 'interview' ? openInterviewSchedulerForStatus() : nextStatus === 'rejected' ? rejectCandidate() : changeStatus(nextStatus)"
           >
             {{ transitionLabels[nextStatus] ?? nextStatus }}
             <kbd class="inline-flex items-center justify-center rounded px-1 py-0.5 text-[10px] font-mono leading-none opacity-60 bg-black/10 dark:bg-white/10 min-w-[16px]">{{ idx + 1 }}</kbd>
@@ -1447,6 +1464,19 @@ function scoreClass(score: number) {
       @close="closeInterviewSidebar"
       @scheduled="handleInterviewScheduled"
       @skip="skipInterviewScheduling"
+    />
+
+    <!-- Rejection Email Modal -->
+    <RejectionEmailModal
+      v-if="showRejectionModal && application"
+      :application-id="application.id"
+      :candidate-first-name="application.candidate.firstName"
+      :candidate-last-name="application.candidate.lastName"
+      :candidate-email="application.candidate.email"
+      :job-title="application.job.title"
+      @close="showRejectionModal = false"
+      @sent="finalizeRejection"
+      @skip="finalizeRejection"
     />
 
     <!-- Document Preview Modal -->

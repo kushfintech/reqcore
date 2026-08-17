@@ -57,7 +57,7 @@ export const SURVEY_QUESTIONS = [
   },
   {
     id: 'discovery_source',
-    title: 'How did you hear about Reqcore?',
+    title: 'How did you hear about Kush Talents?',
     subtitle: 'Helps us know what to keep doing.',
     options: [
       { value: 'search', label: 'Google / search' },

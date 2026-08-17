@@ -43,7 +43,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Create Job — Reqcore',
+  title: 'Create Job — Kush Talents',
   description: 'Create a new job posting',
 })
 
@@ -876,7 +876,7 @@ function clearFormStorage() {
 // ─────────────────────────────────────────────
 
 /**
- * The walkthrough for someone evaluating Reqcore rather than hiring.
+ * The walkthrough for someone evaluating Kush Talents rather than hiring.
  *
  * They are taken through the real wizard on purpose — trying the create-a-job
  * flow is usually the thing they came to do, so replacing it with a canned

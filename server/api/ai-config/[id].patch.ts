@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     if (body.isEnabled === undefined) {
       throw createError({
         statusCode: 422,
-        statusMessage: 'The platform AI is managed by Reqcore — you can only enable or disable it.',
+        statusMessage: 'The platform AI is managed by Kush Talents — you can only enable or disable it.',
       })
     }
     const enabled = body.isEnabled

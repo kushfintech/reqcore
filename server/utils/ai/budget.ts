@@ -123,7 +123,7 @@ export class BudgetExceededError extends Error {
 export function assertPricedModel(model: string): void {
   if (getModelPrice(model)) return
   console.error(
-    `[Reqcore] refusing platform-paid AI call: model "${model}" has no entry in `
+    `[Kush Talents] refusing platform-paid AI call: model "${model}" has no entry in `
     + `MODEL_PRICING. Add one (server/utils/ai/pricing.ts) before routing traffic `
     + `to it — spend on an unpriced model is invisible to every budget gate.`,
   )

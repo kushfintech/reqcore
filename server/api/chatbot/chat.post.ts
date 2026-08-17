@@ -102,7 +102,7 @@ const bodySchema = z.object({
 })
 
 const BASE_SYSTEM_PROMPT = [
-  'You are Reqcore Assistant, an AI copilot embedded in an applicant tracking system.',
+  'You are Kush Talents Assistant, an AI copilot embedded in an applicant tracking system.',
   'You help recruiters and hiring managers analyse candidates, jobs, and applications.',
   '',
   'Tooling:',
@@ -386,7 +386,7 @@ export default defineEventHandler(async (event) => {
   if (body.model !== undefined) conversationUpdates.chatbotModel = body.model
   // A BYOK configuration supplies its own model. Clear any platform catalogue
   // pin when switching engines so reopening the conversation cannot revive a
-  // stale selection if it later moves back to Reqcore AI.
+  // stale selection if it later moves back to Kush Talents AI.
   if (body.aiConfigId !== undefined && body.aiConfigId !== PLATFORM_AI_CONFIG_ID) {
     conversationUpdates.chatbotModel = null
   }

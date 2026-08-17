@@ -110,16 +110,16 @@ export const envSchema = z
     RESEND_API_KEY: emptyToUndefined.pipe(z.string().min(1)).optional(),
     /** Full-access Resend API key used only to retrieve inbound candidate emails. */
     RESEND_RECEIVING_API_KEY: emptyToUndefined.pipe(z.string().min(1)).optional(),
-    /** Sender email address for Resend emails. Must be a verified domain in Resend. Defaults to "Reqcore <noreply@reqcore.com>". */
+    /** Sender email address for Resend emails. Must be a verified domain in Resend. Defaults to "Kush Talents <noreply@reqcore.com>". */
     RESEND_FROM_EMAIL: emptyToUndefined
       .pipe(z.string().min(1))
       .optional()
-      .default("Reqcore <noreply@reqcore.com>"),
+      .default("Kush Talents <noreply@reqcore.com>"),
     /** Reply-friendly sender identity used only for candidate conversations. */
     RESEND_CANDIDATE_FROM_EMAIL: emptyToUndefined
       .pipe(z.string().min(1))
       .optional()
-      .default("Reqcore Messages <messages@reqcore.com>"),
+      .default("Kush Talents Messages <messages@reqcore.com>"),
     /** Dedicated inbound subdomain used for per-conversation Reply-To addresses. */
     RESEND_REPLY_DOMAIN: emptyToUndefined
       .pipe(z.string().regex(/^(?!https?:\/\/)[a-z0-9.-]+$/i, 'Must be a domain name without a protocol'))
@@ -142,11 +142,11 @@ export const envSchema = z
     SMTP_USER: emptyToUndefined.pipe(z.string().min(1)).optional(),
     /** SMTP password for authentication. Omit for anonymous relay. */
     SMTP_PASS: emptyToUndefined.pipe(z.string().min(1)).optional(),
-    /** Sender address for SMTP emails. Defaults to "Reqcore <noreply@reqcore.com>". */
+    /** Sender address for SMTP emails. Defaults to "Kush Talents <noreply@reqcore.com>". */
     SMTP_FROM: emptyToUndefined
       .pipe(z.string().min(1))
       .optional()
-      .default('Reqcore <noreply@reqcore.com>'),
+      .default('Kush Talents <noreply@reqcore.com>'),
     /** Use implicit TLS on port 465. When false, uses STARTTLS (port 587). Defaults to false. */
     SMTP_SECURE: z.preprocess(
       (val) => typeof val === 'string' && val.trim() === '' ? false : val === 'true',
@@ -385,7 +385,7 @@ export const env = new Proxy({} as z.infer<typeof envSchema>, {
           .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
           .join("\n");
         console.error(
-          `\n[Reqcore] ❌ Missing or invalid environment variables:\n${missing}\n\n` +
+          `\n[Kush Talents] ❌ Missing or invalid environment variables:\n${missing}\n\n` +
             `Ensure these variables are set in your Railway service (Settings → Variables).\n` +
             `Required: DATABASE_URL, BETTER_AUTH_SECRET, S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET\n` +
             `Required when not on Railway: BETTER_AUTH_URL (or generate a Railway domain)\n` +

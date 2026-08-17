@@ -33,7 +33,7 @@ export default defineEventHandler((event) => {
   event.context.nonce = nonce
 
   // Google Ads conversion tracking needs gtag.js plus the endpoints it pings.
-  // Only widened when NUXT_PUBLIC_GOOGLE_ADS_ID is set (Reqcore Cloud), so a
+  // Only widened when NUXT_PUBLIC_GOOGLE_ADS_ID is set (Kush Talents Cloud), so a
   // self-hosted deployment keeps the stricter policy.
   const adsEnabled = !!process.env.NUXT_PUBLIC_GOOGLE_ADS_ID
   const adsScriptSrc = adsEnabled

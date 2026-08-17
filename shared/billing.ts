@@ -181,7 +181,7 @@ export const BILLING_PLANS: BillingPlan[] = [
       'Unlimited AI shortlists on every role',
       'Deeper analysis on every shortlisted application',
       'Bring your own AI key (BYOK)',
-      'Your own domain. No Reqcore branding.',
+      'Your own domain. No Kush Talents branding.',
       'Email and calendar integrations, pipeline, templates',
       'Your whole team included. No per-seat fees.',
       'Priority support',
@@ -266,7 +266,7 @@ const TIER_DISPLAY_NAME: Record<BillingTier, string> = {
  *
  * `careerPage` is deliberately free: a free org has no applicant flood to import,
  * so the career page is its only route to a first shortlist — the moment the
- * value-gated trial exists to reach. The Reqcore-branded page is also the
+ * value-gated trial exists to reach. The Kush Talents-branded page is also the
  * acquisition surface; Team monetizes *removing* that branding, not having it.
  */
 export const FEATURE_MIN_TIER: Record<PlanFeature, BillingTier> = {

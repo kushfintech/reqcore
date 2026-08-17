@@ -46,7 +46,7 @@ export interface LifecycleEventParams {
  * Fail-closed, unlike NOTIFICATIONS_ENABLED. A recruiter notification is mail
  * the operator's own users asked for; a lifecycle event ships a user's email
  * address to *our* Resend account, which is the wrong default for someone
- * self-hosting Reqcore on their own infrastructure. Hosted sets it explicitly.
+ * self-hosting Kush Talents on their own infrastructure. Hosted sets it explicitly.
  */
 export function lifecycleEventsEnabled(): boolean {
   return env.LIFECYCLE_EMAILS_ENABLED && Boolean(env.RESEND_API_KEY)

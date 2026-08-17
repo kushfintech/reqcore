@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRight, Briefcase, CheckCircle2, Sparkles, Users } from 'lucide-vue-next'
+import { ArrowRight, Briefcase, Sparkles, Users } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -11,7 +11,7 @@ const pillars = computed(() => [
   { icon: Users, label: t('home.pillars.unlimitedSeats.label'), desc: t('home.pillars.unlimitedSeats.desc') },
 ])
 
-useHead({ title: 'Reqcore' })
+useHead({ title: 'Kush Talents' })
 definePageMeta({ layout: false })
 </script>
 
@@ -82,21 +82,9 @@ definePageMeta({ layout: false })
         </div>
       </div>
 
-      <PublicPricingSection
-        heading-tag="h2"
-        :signed-in="Boolean(session?.user)"
-      />
-
       <!-- ── Footer ── -->
       <footer class="hero-animate hero-delay-5 mx-auto mt-8 flex max-w-5xl flex-col items-center gap-4 px-6 text-center">
         <div class="flex items-center gap-5">
-          <NuxtLink
-            :to="localePath('/pricing')"
-            class="flex items-center gap-1.5 text-[13px] text-surface-500 transition hover:text-surface-700 dark:hover:text-surface-300"
-          >
-            <CheckCircle2 class="h-4 w-4" />
-            {{ $t('home.footer.source') }}
-          </NuxtLink>
           <NuxtLink
             :to="localePath('/jobs')"
             class="flex items-center gap-1.5 text-[13px] text-surface-500 transition hover:text-surface-700 dark:hover:text-surface-300"

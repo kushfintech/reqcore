@@ -1,7 +1,7 @@
 /**
  * The worked example behind "Create a test job".
  *
- * Someone evaluating Reqcore wants to walk the real create-a-job wizard — that
+ * Someone evaluating Kush Talents wants to walk the real create-a-job wizard — that
  * is the thing they came to try. What they do not want is to invent a job
  * description first, and the board is full of "fsfsf" and "53W5" roles because
  * that is what people type to get past the form. So the wizard is pre-filled

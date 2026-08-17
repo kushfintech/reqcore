@@ -53,9 +53,9 @@ const canonicalPath = computed(() =>
   localePath(`/career/${data.value?.canonicalSlug ?? slug.value}`))
 const canonicalUrl = computed(() => absUrl(canonicalPath.value))
 
-// Share image: hero banner first, then logo, then the Reqcore default.
+// Share image: hero banner first, then logo, then the Kush Talents default.
 const shareImage = computed(() =>
-  absUrl(data.value?.banner) ?? absUrl(data.value?.logo) ?? absUrl('/reqcore-banner-github.jpeg'))
+  absUrl(data.value?.banner) ?? absUrl(data.value?.logo) ?? absUrl('/kush-og-banner.jpeg'))
 
 const pageTitle = computed(() =>
   (data.value?.name ? t('career.metaTitle', { name: data.value.name }) : t('career.eyebrow')))

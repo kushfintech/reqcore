@@ -293,7 +293,7 @@ function finish() {
                 :to="$localePath('/dashboard/settings/billing')"
                 class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
               >
-                Upgrade to keep the thread in Reqcore
+                Upgrade to keep the thread in Kush Talents
                 <ExternalLink class="size-4" />
               </NuxtLink>
               <a

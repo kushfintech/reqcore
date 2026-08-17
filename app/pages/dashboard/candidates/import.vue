@@ -11,7 +11,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Import Candidates — Reqcore',
+  title: 'Import Candidates — Kush Talents',
   description: 'Import candidates from a CSV file',
 })
 

@@ -7,7 +7,7 @@ import { PLATFORM_ENGINE_ID } from '../../../shared/chatbot'
 
 export const PLATFORM_AI_CONFIG_ID = PLATFORM_ENGINE_ID
 export const PLATFORM_AI_PROVIDER = 'openrouter'
-export const DEFAULT_PLATFORM_AI_NAME = 'Reqcore AI'
+export const DEFAULT_PLATFORM_AI_NAME = 'Kush Talents AI'
 export const DEFAULT_PLATFORM_MAX_TOKENS = 4096
 
 type PlatformAiOverride = typeof platformAiConfig.$inferSelect

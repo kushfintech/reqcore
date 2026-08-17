@@ -23,7 +23,7 @@ function closeModal() {
         <div class="flex items-center justify-between border-b border-surface-200 px-5 py-4 dark:border-surface-800">
           <div class="flex items-center gap-2">
             <Eye class="size-5 text-brand-600 dark:text-brand-400" />
-            <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">Create your own Reqcore workspace</h3>
+            <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">Create your own Kush Talents workspace</h3>
           </div>
 
           <button

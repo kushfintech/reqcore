@@ -21,7 +21,7 @@
     "hero": {
       "titleLine1": "Hiring software",
       "titleHighlight": "that starts free.",
-      "subtitle": "Track your first role in Reqcore with 1 active job and 300 applicants free. Upgrade only when your hiring pipeline grows.",
+      "subtitle": "Track your first role in Kush Talents with 1 active job and 300 applicants free. Upgrade only when your hiring pipeline grows.",
       "goToDashboard": "Aller au tableau de bord",
       "signIn": "Se connecter",
       "createAccount": "Créer un compte",
@@ -45,7 +45,7 @@
     },
     "footer": {
       "source": "Pricing",
-      "tagline": "Reqcore — applicant tracking that starts free"
+      "tagline": "Kush Talents — applicant tracking that starts free"
     }
   },
   "retention": {
@@ -156,8 +156,8 @@
   "jobs": {
     "list": {
       "metaTitle": "Postes ouverts — Offres d'emploi",
-      "metaDescription": "Parcourez les postes ouverts sur Reqcore et postulez directement. Trouvez votre prochaine opportunité de carrière auprès d'entreprises qui valorisent la transparence.",
-      "ogTitle": "Postes ouverts — Offres d'emploi Reqcore",
+      "metaDescription": "Parcourez les postes ouverts sur Kush Talents et postulez directement. Trouvez votre prochaine opportunité de carrière auprès d'entreprises qui valorisent la transparence.",
+      "ogTitle": "Postes ouverts — Offres d'emploi Kush Talents",
       "ogDescription": "Parcourez les postes ouverts et postulez directement. Propulsé par l'ATS open source qui vous appartient vraiment.",
       "twitterDescription": "Parcourez les postes ouverts et postulez directement.",
       "title": "Postes ouverts",
@@ -176,7 +176,7 @@
       "totalCount": "{count} poste ouvert | {count} postes ouverts"
     },
     "detail": {
-      "metaTitleFallback": "Détails du poste — Reqcore",
+      "metaTitleFallback": "Détails du poste — Kush Talents",
       "metaDescriptionFallback": "Consultez les détails du poste et postulez",
       "hiringNow": "Recrutement en cours",
       "metaApplyFor": "Postulez pour",
@@ -204,7 +204,7 @@
     },
     "apply": {
       "metaApplyPrefix": "Candidature",
-      "metaTitleFallback": "Postuler — Reqcore",
+      "metaTitleFallback": "Postuler — Kush Talents",
       "metaDescriptionFallback": "Soumettez votre candidature",
       "notFoundTitle": "Poste introuvable",
       "notFoundBody": "Ce poste a peut-être déjà été pourvu ou n'accepte plus de candidatures.",
@@ -225,7 +225,7 @@
       }
     },
     "confirmation": {
-      "metaTitle": "Candidature envoyée — Reqcore",
+      "metaTitle": "Candidature envoyée — Kush Talents",
       "title": "Candidature reçue",
       "thanksWithTitle": "Merci d'avoir postulé au poste de {title}. Vos informations sont désormais entre les mains de l'équipe de recrutement.",
       "thanksPlain": "Merci pour votre candidature. Vos informations sont désormais entre les mains de l'équipe de recrutement.",

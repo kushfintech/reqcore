@@ -22,6 +22,7 @@ const { handlePreviewReadOnlyError } = usePreviewReadOnly()
 const toast = useToast()
 const { track } = useTrack()
 const { formatCandidateName, formatDateTime } = useOrgSettings()
+const { openRejection } = useRejectionFlow()
 
 // Detect if the job sub-nav bar is visible (adds 40px / 2.5rem)
 const route = useRoute()
@@ -121,6 +122,23 @@ const allowedTransitions = computed(() => {
 const isTransitioning = ref(false)
 
 async function handleTransition(newStatus: string) {
+  // Rejecting? Route through the shared rejection flow so the user can send a
+  // rejection email (or skip). The status change happens on send/skip.
+  if (newStatus === 'rejected') {
+    const app = application.value
+    if (app?.candidate) {
+      openRejection({
+        applicationId: props.applicationId,
+        candidateFirstName: app.candidate.firstName,
+        candidateLastName: app.candidate.lastName,
+        candidateEmail: app.candidate.email,
+        jobTitle: app.job?.title ?? '',
+        onDone: async () => { await refresh(); emit('updated') },
+      })
+      return
+    }
+  }
+
   isTransitioning.value = true
   try {
     await $fetch(`/api/applications/${props.applicationId}`, {

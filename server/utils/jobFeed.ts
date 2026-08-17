@@ -7,7 +7,7 @@ import type { PublishRequirementInput } from '../../shared/job-publish'
 /**
  * Eligibility rules for the platform-wide job board feed (`/jobs.xml`).
  *
- * Every organization's open roles share ONE feed submitted under Reqcore's own
+ * Every organization's open roles share ONE feed submitted under Kush Talents's own
  * publisher account. That is what makes distribution free and zero-click for
  * customers — and it is also the risk: aggregators suspend a publisher for the
  * whole feed, not per job. One org posting spam or empty listings would take

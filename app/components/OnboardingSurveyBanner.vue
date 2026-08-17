@@ -43,7 +43,7 @@ function open() {
       <div class="flex min-w-0 items-center gap-2.5">
         <ClipboardList class="size-4 shrink-0 text-brand-600 dark:text-brand-400" />
         <p class="min-w-0 truncate text-sm">
-          <span class="font-semibold">Two quick questions to tailor Reqcore</span>
+          <span class="font-semibold">Two quick questions to tailor Kush Talents</span>
           <span class="ml-1 text-brand-700 dark:text-brand-300">— it takes under a minute.</span>
         </p>
       </div>
@@ -53,7 +53,7 @@ function open() {
           class="inline-flex h-8 items-center gap-1.5 rounded-md border border-brand-300 bg-white px-3 text-xs font-semibold text-brand-800 transition-colors hover:bg-brand-100 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-200 dark:hover:bg-brand-900"
           @click="open"
         >
-          Tailor Reqcore
+          Tailor Kush Talents
           <ArrowRight class="size-3.5" />
         </NuxtLink>
         <button

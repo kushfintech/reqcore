@@ -78,7 +78,7 @@ export function captureAiGeneration(e: AiGenerationEvent): void {
         ...(e.status === 'completed' ? { $ai_http_status: 200 } : {}),
         $ai_trace_id: e.traceId || randomUUID(),
         $ai_span_name: e.feature,
-        // Reqcore-specific dimensions for product/cost analysis.
+        // Kush Talents-specific dimensions for product/cost analysis.
         billing_mode: e.billingMode,
         feature: e.feature,
         ...(e.applicationId ? { application_id: e.applicationId } : {}),

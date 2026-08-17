@@ -13,7 +13,7 @@
  */
 
 /**
- * Sentinel id for the platform ("Reqcore AI") engine in every place an
+ * Sentinel id for the platform ("Kush Talents AI") engine in every place an
  * `aiConfigId` is expected. It has no ai_config row, so it needs an id the
  * client and server both agree on. Shared rather than server-only because the
  * composer's picker has to name it too.

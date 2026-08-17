@@ -114,7 +114,7 @@ async function sendEmail(msg: EmailMessage): Promise<SendEmailResult> {
   // something legitimate, and failing their interview invitation would make
   // the walkthrough look broken.
   if (isUndeliverableAddress(msg.to)) {
-    console.info(`[Reqcore] Skipped send to reserved address ${msg.to} — ${msg.subject}`)
+    console.info(`[Kush Talents] Skipped send to reserved address ${msg.to} — ${msg.subject}`)
     return { providerMessageId: null }
   }
 
@@ -171,7 +171,7 @@ async function sendEmail(msg: EmailMessage): Promise<SendEmailResult> {
   }
 
   // 3. No provider configured — dev/test fallback
-  console.info(`[Reqcore] ${msg.logFallback}`)
+  console.info(`[Kush Talents] ${msg.logFallback}`)
   return { providerMessageId: null }
 }
 
@@ -310,7 +310,7 @@ export async function sendVerificationEmail(data: {
   try {
     await sendEmail({
       to: data.user.email,
-      subject: 'Verify your email address — Reqcore',
+      subject: 'Verify your email address — Kush Talents',
       html: buildVerificationHtml({ url: data.url }),
       text: buildVerificationText({ url: data.url }),
       resendTags: [{ name: 'category', value: 'verification' }],
@@ -336,7 +336,7 @@ export async function sendPasswordResetEmail(data: {
   try {
     await sendEmail({
       to: data.user.email,
-      subject: 'Reset your password — Reqcore',
+      subject: 'Reset your password — Kush Talents',
       html: buildPasswordResetHtml({ url: data.url }),
       text: buildPasswordResetText({ url: data.url }),
       resendTags: [{ name: 'category', value: 'password-reset' }],
@@ -362,7 +362,7 @@ export async function sendOrgInvitationEmail(data: {
 }, inviteLink: string): Promise<void> {
   await sendEmail({
     to: data.email,
-    subject: `You're invited to join ${data.organization.name} on Reqcore`,
+    subject: `You're invited to join ${data.organization.name} on Kush Talents`,
     html: buildInvitationHtml({
       inviteeName: data.email,
       inviterName: data.inviter.user.name,
@@ -436,7 +436,7 @@ function buildInvitationText(params: {
     'This invitation expires in 48 hours.',
     'If you didn\'t expect this email, you can safely ignore it.',
     '',
-    '— Reqcore',
+    '— Kush Talents',
   ].join('\n')
 }
 
@@ -460,12 +460,12 @@ function buildVerificationText(params: { url: string }): string {
   return [
     'Verify your email address',
     '',
-    'Click the link below to verify your email and activate your Reqcore account:',
+    'Click the link below to verify your email and activate your Kush Talents account:',
     params.url,
     '',
     'If you didn\'t create an account, you can safely ignore this email.',
     '',
-    '— Reqcore',
+    '— Kush Talents',
   ].join('\n')
 }
 
@@ -485,12 +485,12 @@ function buildPasswordResetText(params: { url: string }): string {
   return [
     'Reset your password',
     '',
-    'Click the link below to reset your Reqcore password:',
+    'Click the link below to reset your Kush Talents password:',
     params.url,
     '',
     'If you didn\'t request this, you can safely ignore this email.',
     '',
-    '— Reqcore',
+    '— Kush Talents',
   ].join('\n')
 }
 
@@ -644,7 +644,7 @@ function buildInterviewInvitationHtml(subject: string, bodyText: string, data: I
           <tr>
             <td style="padding:16px 32px;text-align:center;border-top:1px solid #f4f4f5;background-color:#fafafa;">
               <p style="margin:0;font-size:12px;color:#a1a1aa;">
-                Sent by ${escapeHtml(data.organizationName)} via Reqcore
+                Sent by ${escapeHtml(data.organizationName)} via Kush Talents
               </p>
             </td>
           </tr>
@@ -673,4 +673,100 @@ function buildInterviewInvitationText(
     '',
     '─────────────────────────────',
   ].join('\n')
+}
+
+// ─────────────────────────────────────────────
+// Candidate rejection emails
+// ─────────────────────────────────────────────
+
+export interface RejectionEmailData {
+  candidateName: string
+  candidateFirstName: string
+  candidateLastName: string
+  candidateEmail: string
+  jobTitle: string
+  organizationName: string
+}
+
+/** Replace known {{variable}} placeholders in a rejection template. */
+export function renderRejectionTemplate(template: string, data: RejectionEmailData): string {
+  const variables: Record<string, string> = {
+    candidateName: data.candidateName,
+    candidateFirstName: data.candidateFirstName,
+    candidateLastName: data.candidateLastName,
+    candidateEmail: data.candidateEmail,
+    jobTitle: data.jobTitle,
+    organizationName: data.organizationName,
+  }
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
+    return key in variables ? variables[key]! : match
+  })
+}
+
+/**
+ * Send a rejection email to a candidate.
+ * Falls back to console.info when no email provider is configured.
+ */
+export async function sendRejectionEmail(params: {
+  subject: string
+  body: string
+  data: RejectionEmailData
+}): Promise<void> {
+  const renderedSubject = renderRejectionTemplate(params.subject, params.data)
+  const renderedBody = renderRejectionTemplate(params.body, params.data)
+
+  await sendEmail({
+    to: params.data.candidateEmail,
+    subject: renderedSubject,
+    html: buildRejectionHtml(renderedSubject, renderedBody, params.data),
+    text: renderedBody,
+    resendTags: [
+      { name: 'category', value: 'candidate-rejection' },
+    ],
+    logFallback:
+      `Rejection email → ${params.data.candidateEmail} | ` +
+      `Subject: ${renderedSubject} | Job: ${params.data.jobTitle}`,
+    errorCategory: 'email.rejection_send_failed',
+  })
+}
+
+function buildRejectionHtml(subject: string, bodyText: string, data: RejectionEmailData): string {
+  const bodyHtml = escapeHtml(bodyText).replace(/\n/g, '<br />')
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${escapeHtml(subject)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e4e4e7;">
+          <tr>
+            <td style="padding:32px 32px 24px;text-align:center;border-bottom:1px solid #f4f4f5;">
+              <h1 style="margin:0;font-size:20px;font-weight:600;color:#09090b;">${escapeHtml(data.organizationName)}</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <div style="font-size:14px;line-height:1.7;color:#3f3f46;">
+                ${bodyHtml}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 32px;text-align:center;border-top:1px solid #f4f4f5;background-color:#fafafa;">
+              <p style="margin:0;font-size:12px;color:#a1a1aa;">
+                Sent by ${escapeHtml(data.organizationName)} via Kush Talents
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
 }

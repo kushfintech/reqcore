@@ -5,7 +5,7 @@
  * Sibling of ChatbotAgentPicker. Chooses what powers the next message, from one
  * flat menu with two halves:
  *
- *   - **Reqcore AI** — the vetted catalogue (`shared/chatbot-models.ts`), grouped
+ *   - **Kush Talents AI** — the vetted catalogue (`shared/chatbot-models.ts`), grouped
  *     by lab and capability tier. These run on the platform key and spend the org's
  *     assistant credits, so each carries its credit multiplier.
  *   - **Your own keys** — the org's BYOK configs, billed by their provider, not
@@ -97,7 +97,7 @@ watchEffect(() => {
 
 const label = computed(() => {
   if (selectedModelChoice.value) return selectedModelChoice.value.label
-  if (platformEngineActive.value) return 'Reqcore AI'
+  if (platformEngineActive.value) return 'Kush Talents AI'
   if (selectedConfig.value) return selectedConfig.value.name
   if (defaultChatbotConfig.value) return `Default · ${defaultChatbotConfig.value.name}`
   return 'Default model'
@@ -194,7 +194,7 @@ onUnmounted(() => window.removeEventListener('click', onWindowClick))
               Currently {{ defaultChatbotConfig.name }} · <span class="font-mono">{{ defaultChatbotConfig.model }}</span>
             </template>
             <template v-else-if="platformAvailable">
-              Reqcore AI, recommended model
+              Kush Talents AI, recommended model
             </template>
             <template v-else>
               No default configured yet
@@ -203,11 +203,11 @@ onUnmounted(() => window.removeEventListener('click', onWindowClick))
         </div>
       </button>
 
-      <!-- Reqcore AI catalogue — Free is prompt-counted; paid is credit-metered. -->
+      <!-- Kush Talents AI catalogue — Free is prompt-counted; paid is credit-metered. -->
       <template v-if="platformAvailable">
         <div class="mt-1 border-t border-surface-200 dark:border-surface-800 px-3 pt-2 pb-1">
           <div class="text-[11px] font-semibold uppercase tracking-wide text-surface-500">
-            Reqcore AI
+            Kush Talents AI
           </div>
           <p class="mt-0.5 text-[11px] leading-snug text-surface-500">
             {{ isFree

@@ -2,7 +2,7 @@
  * Fires Google Ads conversions for the PPC campaign.
  *
  * No-ops entirely unless NUXT_PUBLIC_GOOGLE_ADS_ID and the relevant label are
- * configured (Reqcore Cloud only — self-hosted deployments never call out).
+ * configured (Kush Talents Cloud only — self-hosted deployments never call out).
  *
  * Conversion labels come from Google Ads → Goals → Conversions → the specific
  * conversion action → "Tag setup" → the `send_to` value after the slash.

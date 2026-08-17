@@ -107,7 +107,7 @@ function nowStamp(): string {
  * Generate a METHOD:REQUEST iCalendar (.ics) string for an interview invitation.
  * This format is recognized by all major email clients (Gmail, Outlook, Apple Mail)
  * and keeps the event synchronized across invitation updates. Candidate responses
- * are collected through Reqcore rather than calendar-client RSVP messages.
+ * are collected through Kush Talents rather than calendar-client RSVP messages.
  */
 export function generateInterviewICS(event: ICalEvent): string {
   const endTime = new Date(event.startTime.getTime() + event.durationMinutes * 60_000)
@@ -117,7 +117,7 @@ export function generateInterviewICS(event: ICalEvent): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Reqcore//Interview Scheduling//EN',
+    'PRODID:-//Kush Talents//Interview Scheduling//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:REQUEST',
     'BEGIN:VEVENT',
@@ -157,7 +157,7 @@ export function generateCancellationICS(event: Pick<ICalEvent, 'interviewId' | '
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Reqcore//Interview Scheduling//EN',
+    'PRODID:-//Kush Talents//Interview Scheduling//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:CANCEL',
     'BEGIN:VEVENT',

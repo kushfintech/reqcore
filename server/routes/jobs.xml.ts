@@ -14,7 +14,7 @@ import {
  *
  * One feed for every organization's open roles, submitted to aggregators
  * (Jooble, Adzuna, Careerjet, Talent.com, Jobsora, Jora, WhatJobs) under
- * Reqcore's own publisher account. Customers get syndication by publishing a
+ * Kush Talents's own publisher account. Customers get syndication by publishing a
  * role and doing nothing else.
  *
  * `?board=<name>` stamps `utm_source` onto every job URL, so applications
@@ -201,7 +201,7 @@ export default defineEventHandler(async (event) => {
   const body
     = '<?xml version="1.0" encoding="UTF-8"?>\n'
       + '<source>\n'
-      + `  <publisher>${xmlEscape('Reqcore')}</publisher>\n`
+      + `  <publisher>${xmlEscape('Kush Talents')}</publisher>\n`
       + `  <publisherurl>${xmlEscape(origin)}</publisherurl>\n`
       + `  <lastBuildDate>${xmlEscape(now.toUTCString())}</lastBuildDate>\n`
       + items.join('')

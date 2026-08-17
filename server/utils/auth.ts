@@ -291,7 +291,7 @@ export function isStaleInheritedPreviewUrl(
   if (explicitHost === domain) return false;
 
   console.warn(
-    `[Reqcore] Ignoring inherited BETTER_AUTH_URL (${explicitHost}) in preview ` +
+    `[Kush Talents] Ignoring inherited BETTER_AUTH_URL (${explicitHost}) in preview ` +
       `environment "${env.RAILWAY_ENVIRONMENT_NAME}"; using ${domain} instead.`,
   );
   return true;
@@ -315,7 +315,7 @@ function resolveBetterAuthUrl(): string {
     const domain = railwayDomain.replace(/^https?:\/\//, "");
     const url = `https://${domain}`;
     console.info(
-      `[Reqcore] Using Railway public-domain BETTER_AUTH_URL: ${url}`,
+      `[Kush Talents] Using Railway public-domain BETTER_AUTH_URL: ${url}`,
     );
     return url;
   }
@@ -340,7 +340,7 @@ function getAuth(): Auth {
 
     if (missingStripeBillingVars.length > 0) {
       console.warn(
-        `[Reqcore] Stripe billing disabled: missing ${missingStripeBillingVars.join(", ")}. ` +
+        `[Kush Talents] Stripe billing disabled: missing ${missingStripeBillingVars.join(", ")}. ` +
           "Set all Stripe billing variables to enable checkout, or unset the partial Stripe variables.",
       );
     }
@@ -497,7 +497,7 @@ function getAuth(): Auth {
           // A second org is a second workspace that can stall on its own, and
           // the automation keys on the org id in the payload. `isFirstOrg`
           // separates the two cases for the copy: someone opening their third
-          // workspace already knows what Reqcore is, and greeting them as a new
+          // workspace already knows what Kush Talents is, and greeting them as a new
           // signup is the kind of detail that makes automated mail obvious.
           organizationHooks: {
             afterCreateOrganization: async ({ organization: org, user }) => {

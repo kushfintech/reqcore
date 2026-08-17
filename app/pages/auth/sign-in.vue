@@ -7,8 +7,8 @@ definePageMeta({
 });
 
 useSeoMeta({
-    title: "Sign In — Reqcore",
-    description: "Sign in to your Reqcore account",
+    title: "Sign In — Kush Talents",
+    description: "Sign in to your Kush Talents account",
     robots: "noindex, nofollow",
 });
 
@@ -226,7 +226,7 @@ async function handleSocialSignIn(providerId: string) {
                 Welcome back
             </h2>
             <p class="mt-1.5 text-sm text-surface-500 dark:text-surface-400">
-                Sign in to your Reqcore workspace.
+                Sign in to your Kush Talents workspace.
             </p>
         </div>
 

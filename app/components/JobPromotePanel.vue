@@ -468,7 +468,7 @@ onMounted(() => {
       <ul class="divide-y divide-surface-100 dark:divide-surface-800">
         <li class="flex items-center gap-3 px-5 py-3">
           <CheckCircle2 class="size-4 shrink-0 text-success-600 dark:text-success-400" />
-          <span class="flex-1 text-sm text-surface-700 dark:text-surface-300">Reqcore job board &amp; Google for Jobs</span>
+          <span class="flex-1 text-sm text-surface-700 dark:text-surface-300">Kush Talents job board &amp; Google for Jobs</span>
           <a :href="applicationUrl" target="_blank" rel="noopener" class="shrink-0 text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline">View</a>
         </li>
 

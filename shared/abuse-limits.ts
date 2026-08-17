@@ -9,7 +9,7 @@
  * plan-based business limits (which meter legitimate usage, not abuse).
  *
  * The numbers are deliberately generous for real recruiting teams and tight
- * enough that a hijacked or throwaway account cannot turn Reqcore into a spam
+ * enough that a hijacked or throwaway account cannot turn Kush Talents into a spam
  * relay. Tune here — every enforcement point imports these constants.
  */
 export const OUTBOUND_LIMITS = {

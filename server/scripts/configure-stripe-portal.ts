@@ -116,7 +116,7 @@ async function main() {
     // configuration becomes the account default automatically.
     const created = await stripe.billingPortal.configurations.create({
       business_profile: {
-        headline: "Manage your Reqcore subscription",
+        headline: "Manage your Kush Talents subscription",
       },
       features: {
         subscription_update: subscriptionUpdate,

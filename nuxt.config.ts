@@ -104,7 +104,7 @@ export default defineNuxtConfig({
   // Enterprise Edition layer — see ee/README.md and ee/LICENSE. Code here is
   // licensed separately from the AGPLv3 core and gated behind paid plan
   // features at runtime (assertPlanFeature); it stays merged into every
-  // build since Reqcore only ships one hosted deployment.
+  // build since Kush Talents only ships one hosted deployment.
   extends: ["./ee"],
 
   modules: [
@@ -199,7 +199,7 @@ export default defineNuxtConfig({
   // ─────────────────────────────────────────────
   app: {
     head: {
-      titleTemplate: "%s — Reqcore",
+      titleTemplate: "%s — Kush Talents",
       link: [
         { rel: "icon", type: "image/png", href: "/favicon.png" },
         { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
@@ -226,7 +226,7 @@ export default defineNuxtConfig({
     public: {
       /** Base URL of the marketing site (reqcore-web) for cross-domain links */
       marketingUrl:
-        process.env.NUXT_PUBLIC_MARKETING_URL || "https://reqcore.com",
+        process.env.NUXT_PUBLIC_MARKETING_URL || "https://talents.kushfintech.com",
       /** Cookie domain for cross-subdomain sharing (e.g. '.reqcore.com') */
       cookieDomain: process.env.NUXT_PUBLIC_COOKIE_DOMAIN || "",
       // PostHog runtimeConfig is managed by @posthog/nuxt via posthogConfig above.
@@ -267,7 +267,7 @@ export default defineNuxtConfig({
       /**
        * Google Ads conversion ID (e.g. 'AW-18377776892') and per-action
        * conversion labels. Empty by default so self-hosted deployments load
-       * no Google tag — set only on Reqcore Cloud.
+       * no Google tag — set only on Kush Talents Cloud.
        */
       googleAdsId: process.env.NUXT_PUBLIC_GOOGLE_ADS_ID || "",
       googleAdsSignupLabel:

@@ -3,6 +3,7 @@ export interface EmailTemplate {
   name: string
   subject: string
   body: string
+  category: 'interview' | 'rejection'
   organizationId: string
   createdById: string
   createdAt: string
@@ -25,6 +26,7 @@ export function useEmailTemplates() {
     name: string
     subject: string
     body: string
+    category?: 'interview' | 'rejection'
   }) {
     try {
       const created = await $fetch('/api/email-templates', {
@@ -85,5 +87,21 @@ export function useEmailTemplates() {
     }
   }
 
-  return { templates, status, error, refresh, createTemplate, updateTemplate, deleteTemplate, sendInvitation }
+  async function sendRejection(applicationId: string, payload: {
+    templateId?: string
+    customSubject?: string
+    customBody?: string
+  }) {
+    try {
+      return await $fetch(`/api/applications/${applicationId}/send-rejection`, {
+        method: 'POST',
+        body: payload,
+      })
+    } catch (error) {
+      handlePreviewReadOnlyError(error)
+      throw error
+    }
+  }
+
+  return { templates, status, error, refresh, createTemplate, updateTemplate, deleteTemplate, sendInvitation, sendRejection }
 }

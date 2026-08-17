@@ -1,9 +1,9 @@
 /**
- * Seeds the database with realistic demo data for Reqcore.
+ * Seeds the database with realistic demo data for Kush Talents.
  *
  * Creates:
  * - 1 demo user (demo@reqcore.com / demo1234)
- * - 1 organization ("Reqcore Demo")
+ * - 1 organization ("Kush Talents Demo")
  * - 5 jobs with varying statuses
  * - Only candidates attached to the top 3 scored applications in each job/status
  * - At most 3 applications per pipeline stage and job, ordered by score
@@ -60,7 +60,7 @@ if (!DATABASE_URL) {
 
 const DEMO_EMAIL = "demo@reqcore.com";
 const DEMO_PASSWORD = process.env.DEMO_PASSWORD ?? "demo1234";
-const DEMO_ORG_NAME = "Reqcore Demo";
+const DEMO_ORG_NAME = "Kush Talents Demo";
 const DEMO_ORG_SLUG = "reqcore-demo";
 const DEMO_NOTIFICATION_TYPES = [
   "candidate_replied",
@@ -168,14 +168,14 @@ async function disableDemoEmailNotifications(
 const JOBS_DATA = [
   {
     title: "Senior Full-Stack Engineer",
-    description: `We're hiring a Senior Full-Stack Engineer to help scale the core Reqcore platform used by growing hiring teams. You will own high-impact features across product, API, and data layers using TypeScript, Nuxt, and PostgreSQL in a pragmatic, fast-moving environment.\n\n**What you'll do**\n- Deliver end-to-end features from discovery and technical design to production rollout\n- Shape architecture decisions for multi-tenant workflows, performance, and reliability\n- Partner with product and design to turn recruiter pain points into elegant UX\n- Raise engineering quality through thoughtful code review, testing, and observability\n- Mentor team members and improve development standards across the stack\n\n**What we're looking for**\n- 5+ years building and shipping production web applications\n- Strong TypeScript proficiency across frontend and backend services\n- Experience with modern component architectures (Vue, React, or similar)\n- Practical PostgreSQL skills including query tuning and schema evolution\n- Familiarity with CI/CD, Dockerized environments, and cloud deployment workflows\n- Clear communication and ownership mindset in cross-functional teams\n\n**Nice to have**\n- Experience building internal tools, ATS/HR products, or workflow-heavy B2B software\n- Interest in transparent, explainable AI experiences`,
+    description: `We're hiring a Senior Full-Stack Engineer to help scale the core Kush Talents platform used by growing hiring teams. You will own high-impact features across product, API, and data layers using TypeScript, Nuxt, and PostgreSQL in a pragmatic, fast-moving environment.\n\n**What you'll do**\n- Deliver end-to-end features from discovery and technical design to production rollout\n- Shape architecture decisions for multi-tenant workflows, performance, and reliability\n- Partner with product and design to turn recruiter pain points into elegant UX\n- Raise engineering quality through thoughtful code review, testing, and observability\n- Mentor team members and improve development standards across the stack\n\n**What we're looking for**\n- 5+ years building and shipping production web applications\n- Strong TypeScript proficiency across frontend and backend services\n- Experience with modern component architectures (Vue, React, or similar)\n- Practical PostgreSQL skills including query tuning and schema evolution\n- Familiarity with CI/CD, Dockerized environments, and cloud deployment workflows\n- Clear communication and ownership mindset in cross-functional teams\n\n**Nice to have**\n- Experience building internal tools, ATS/HR products, or workflow-heavy B2B software\n- Interest in transparent, explainable AI experiences`,
     location: "Berlin, Germany (Hybrid)",
     type: "full_time" as const,
     status: "open" as const,
   },
   {
     title: "Product Designer",
-    description: `Join Reqcore as a Product Designer and craft the daily workflows used by recruiters to evaluate talent fairly and efficiently. You'll collaborate closely with engineering and product to design intuitive, high-trust experiences across dashboard, pipeline, and candidate flows.\n\n**What you'll do**\n- Lead design work from discovery through polished UI and production handoff\n- Translate complex hiring workflows into clear, low-friction user journeys\n- Run lightweight research and usability testing with real recruiting users\n- Evolve our design system and interaction patterns for speed and consistency\n- Partner with engineers to ensure high-quality implementation and accessibility\n\n**What we're looking for**\n- 3+ years in product design, ideally in B2B SaaS or workflow tools\n- Strong portfolio demonstrating end-to-end problem-solving and measurable outcomes\n- Advanced Figma skills including components, variants, and prototyping\n- Experience balancing visual polish with delivery constraints\n- Solid understanding of accessibility, hierarchy, and information architecture\n\n**Nice to have**\n- Experience designing data-rich interfaces or collaborative tooling\n- Familiarity with recruiting, HR, or marketplace products`,
+    description: `Join Kush Talents as a Product Designer and craft the daily workflows used by recruiters to evaluate talent fairly and efficiently. You'll collaborate closely with engineering and product to design intuitive, high-trust experiences across dashboard, pipeline, and candidate flows.\n\n**What you'll do**\n- Lead design work from discovery through polished UI and production handoff\n- Translate complex hiring workflows into clear, low-friction user journeys\n- Run lightweight research and usability testing with real recruiting users\n- Evolve our design system and interaction patterns for speed and consistency\n- Partner with engineers to ensure high-quality implementation and accessibility\n\n**What we're looking for**\n- 3+ years in product design, ideally in B2B SaaS or workflow tools\n- Strong portfolio demonstrating end-to-end problem-solving and measurable outcomes\n- Advanced Figma skills including components, variants, and prototyping\n- Experience balancing visual polish with delivery constraints\n- Solid understanding of accessibility, hierarchy, and information architecture\n\n**Nice to have**\n- Experience designing data-rich interfaces or collaborative tooling\n- Familiarity with recruiting, HR, or marketplace products`,
     location: "Remote (EU)",
     type: "full_time" as const,
     status: "open" as const,
@@ -189,14 +189,14 @@ const JOBS_DATA = [
   },
   {
     title: "Technical Writer (Part-Time)",
-    description: `We're hiring a part-time Technical Writer to make Reqcore documentation clear, actionable, and enterprise-ready. Your work will directly improve product adoption by helping recruiters, admins, and developers succeed quickly.\n\n**What you'll do**\n- Create and maintain setup guides, API docs, and troubleshooting playbooks\n- Improve onboarding flows for first-time teams and self-hosted deployments\n- Standardize tone, structure, and quality across product documentation\n- Work with engineering and product to document new releases and migrations\n- Identify knowledge gaps from support and feedback loops\n\n**What we're looking for**\n- 2+ years writing technical documentation for software products\n- Ability to explain complex systems in simple, practical language\n- Strong Markdown/docs-as-code workflow habits\n- Attention to clarity, consistency, and user intent\n- Experience editing developer-facing and operations-focused content\n\n**Nice to have**\n- Open-source documentation contributions\n- Familiarity with hiring/recruiting software terminology`,
+    description: `We're hiring a part-time Technical Writer to make Kush Talents documentation clear, actionable, and enterprise-ready. Your work will directly improve product adoption by helping recruiters, admins, and developers succeed quickly.\n\n**What you'll do**\n- Create and maintain setup guides, API docs, and troubleshooting playbooks\n- Improve onboarding flows for first-time teams and self-hosted deployments\n- Standardize tone, structure, and quality across product documentation\n- Work with engineering and product to document new releases and migrations\n- Identify knowledge gaps from support and feedback loops\n\n**What we're looking for**\n- 2+ years writing technical documentation for software products\n- Ability to explain complex systems in simple, practical language\n- Strong Markdown/docs-as-code workflow habits\n- Attention to clarity, consistency, and user intent\n- Experience editing developer-facing and operations-focused content\n\n**Nice to have**\n- Open-source documentation contributions\n- Familiarity with hiring/recruiting software terminology`,
     location: "Remote (EU)",
     type: "part_time" as const,
     status: "open" as const,
   },
   {
     title: "Frontend Engineering Intern",
-    description: `Start your frontend career on a real product with real users. In this 6-month internship, you'll contribute production code to Reqcore while learning modern frontend engineering practices from an experienced team.\n\n**What you'll work on**\n- Build and ship Vue/Nuxt interface components used in daily recruiting workflows\n- Improve usability, accessibility, and performance of existing screens\n- Collaborate in code reviews and iterative delivery cycles\n- Learn how product, design, and engineering collaborate in a modern SaaS team\n\n**What we're looking for**\n- Currently enrolled in computer science, software engineering, or equivalent program\n- Strong foundations in HTML, CSS, and JavaScript\n- Basic familiarity with TypeScript and component-based frameworks is a plus\n- Curiosity, coachability, and attention to detail\n- Ability to communicate clearly and ask good questions\n\n**Internship details**\n- Structured mentorship, weekly feedback, and clear growth goals\n- Opportunity to present shipped work at the end of the internship`,
+    description: `Start your frontend career on a real product with real users. In this 6-month internship, you'll contribute production code to Kush Talents while learning modern frontend engineering practices from an experienced team.\n\n**What you'll work on**\n- Build and ship Vue/Nuxt interface components used in daily recruiting workflows\n- Improve usability, accessibility, and performance of existing screens\n- Collaborate in code reviews and iterative delivery cycles\n- Learn how product, design, and engineering collaborate in a modern SaaS team\n\n**What we're looking for**\n- Currently enrolled in computer science, software engineering, or equivalent program\n- Strong foundations in HTML, CSS, and JavaScript\n- Basic familiarity with TypeScript and component-based frameworks is a plus\n- Curiosity, coachability, and attention to detail\n- Ability to communicate clearly and ask good questions\n\n**Internship details**\n- Structured mentorship, weekly feedback, and clear growth goals\n- Opportunity to present shipped work at the end of the internship`,
     location: "Berlin, Germany (On-site)",
     type: "internship" as const,
     status: "draft" as const,
@@ -4348,7 +4348,7 @@ const AI_SCORING_DATA: ApplicationScoringSeed[] = [
         applicantScore: 9,
         confidence: 90,
         evidence:
-          "7 years of production web application development. Last 4 years at B2B SaaS companies building workflow-heavy internal tools. Previous role involved building a recruitment-adjacent HR platform, directly relevant to Reqcore's domain.",
+          "7 years of production web application development. Last 4 years at B2B SaaS companies building workflow-heavy internal tools. Previous role involved building a recruitment-adjacent HR platform, directly relevant to Kush Talents's domain.",
         strengths: [
           "7 years of progressive web development experience",
           "B2B SaaS background with workflow-heavy product experience",
@@ -4879,7 +4879,7 @@ const AI_SCORING_DATA: ApplicationScoringSeed[] = [
         applicantScore: 8,
         confidence: 82,
         evidence:
-          "4 years of web development. Current role at a multi-tenant SaaS company building B2B collaboration tools. Strong domain relevance for Reqcore.",
+          "4 years of web development. Current role at a multi-tenant SaaS company building B2B collaboration tools. Strong domain relevance for Kush Talents.",
         strengths: [
           "Current multi-tenant SaaS experience directly relevant",
           "B2B collaboration tool background matches ATS workflow needs",
@@ -5574,7 +5574,7 @@ const AI_SCORING_DATA: ApplicationScoringSeed[] = [
         applicantScore: 9,
         confidence: 90,
         evidence:
-          "Previous role designing a B2B applicant tracking and interview scheduling platform — directly adjacent to Reqcore's domain. Deep experience with multi-step form flows, data tables, and candidate pipeline visualization.",
+          "Previous role designing a B2B applicant tracking and interview scheduling platform — directly adjacent to Kush Talents's domain. Deep experience with multi-step form flows, data tables, and candidate pipeline visualization.",
         strengths: [
           "Direct experience designing ATS-adjacent HR software",
           "Multi-step form and candidate pipeline UI expertise",
@@ -5601,7 +5601,7 @@ const AI_SCORING_DATA: ApplicationScoringSeed[] = [
         evidence:
           "Portfolio features 6 case studies with strong problem framing and documented research insights. Headline project: a complete redesign of an HR onboarding tool that reduced time-to-complete by 35%. Visual quality is consistently high.",
         strengths: [
-          "HR tool redesign directly relevant to Reqcore domain",
+          "HR tool redesign directly relevant to Kush Talents domain",
           "Measurable impact: 35% onboarding time reduction",
           "Consistent visual quality and design system application",
         ],
@@ -5849,7 +5849,7 @@ const AI_SCORING_DATA: ApplicationScoringSeed[] = [
         applicantScore: 8,
         confidence: 86,
         evidence:
-          "Portfolio features 5 case studies including an applicant management and status-tracking interface for a staffing agency — directly relevant to Reqcore's core workflow. Case studies are well-structured with clear research-to-delivery arcs.",
+          "Portfolio features 5 case studies including an applicant management and status-tracking interface for a staffing agency — directly relevant to Kush Talents's core workflow. Case studies are well-structured with clear research-to-delivery arcs.",
         strengths: [
           "Staffing agency applicant management interface directly domain-relevant",
           "Well-structured research-to-delivery case study format",
@@ -6603,7 +6603,7 @@ const INTERVIEWS_DATA: InterviewSeed[] = [
     daysOffset: -7,
     hour: 11,
     duration: 60,
-    location: "Reqcore HQ, Friedrichstraße 123, Berlin",
+    location: "Kush Talents HQ, Friedrichstraße 123, Berlin",
     notes:
       "Unanimous strong hire from the panel. Great leadership examples and clear alignment with team values. Offer approved.",
     interviewers: ["Thomas Berger", "Sarah Chen", "Lisa Hoffmann"],
@@ -9364,7 +9364,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
         direction: "inbound",
         subject: "Additional details for my Full-Stack application",
         bodyText:
-          "Hi Reqcore team,\n\nI wanted to add a recent project that was not yet on my CV. I led a Nuxt migration for a customer portal and documented the PostgreSQL performance work in my GitHub portfolio. Happy to walk through the trade-offs if useful.\n\nRegards,\nLucas",
+          "Hi Kush Talents team,\n\nI wanted to add a recent project that was not yet on my CV. I led a Nuxt migration for a customer portal and documented the PostgreSQL performance work in my GitHub portfolio. Happy to walk through the trade-offs if useful.\n\nRegards,\nLucas",
         daysAgo: 1,
         hour: 16,
         minute: 20,
@@ -9400,7 +9400,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
     0,
     6,
     "Availability for an initial engineering call",
-    "Hi Reqcore team,\n\nI am available for a screening call on Tuesday or Thursday morning. I also wanted to confirm that I already have authorization to work in Germany and would not require sponsorship.\n\nBest,\nAmara",
+    "Hi Kush Talents team,\n\nI am available for a screening call on Tuesday or Thursday morning. I also wanted to confirm that I already have authorization to work in Germany and would not require sponsorship.\n\nBest,\nAmara",
     6,
     11,
     20,
@@ -9409,7 +9409,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
     0,
     70,
     "Additional architecture example",
-    "Hello Reqcore team,\n\nI added a short architecture note to my application describing how I split a growing TypeScript service into independently deployable modules. It includes the PostgreSQL migration plan and the trade-offs we considered.\n\nRegards,\nArjun",
+    "Hello Kush Talents team,\n\nI added a short architecture note to my application describing how I split a growing TypeScript service into independently deployable modules. It includes the PostgreSQL migration plan and the trade-offs we considered.\n\nRegards,\nArjun",
     2,
     13,
     15,
@@ -9475,7 +9475,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
         direction: "inbound",
         subject: "Additional Product Designer case study",
         bodyText:
-          "Hello Reqcore team,\n\nI have added a new case study to my portfolio that may be especially relevant to this role. It covers how I simplified a permissions-heavy B2B workflow, evolved the design system, and measured the impact after launch. I would be happy to walk the team through the decisions behind it.\n\nBest,\nCharlotte",
+          "Hello Kush Talents team,\n\nI have added a new case study to my portfolio that may be especially relevant to this role. It covers how I simplified a permissions-heavy B2B workflow, evolved the design system, and measured the impact after launch. I would be happy to walk the team through the decisions behind it.\n\nBest,\nCharlotte",
         daysAgo: 2,
         hour: 15,
         minute: 30,
@@ -9580,7 +9580,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
     2,
     26,
     "Additional certification for my DevOps application",
-    "Hello Reqcore team,\n\nI recently completed my Kubernetes administrator certification and added the credential to my application. I also included a short write-up about a backup restoration exercise I led last quarter.\n\nRegards,\nMarcus",
+    "Hello Kush Talents team,\n\nI recently completed my Kubernetes administrator certification and added the credential to my application. I also included a short write-up about a backup restoration exercise I led last quarter.\n\nRegards,\nMarcus",
     2,
     17,
     5,
@@ -9603,7 +9603,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
     messages: [
       {
         direction: "outbound",
-        subject: "Reqcore Technical Writer offer",
+        subject: "Kush Talents Technical Writer offer",
         bodyText:
           "Hi Felix,\n\nWe are delighted to offer you the part-time Technical Writer role. I have sent the full terms separately. Could we arrange a short call to discuss your preferred weekly schedule and starting date?\n\nBest,\nDemo Recruiter",
         daysAgo: 6,
@@ -9611,7 +9611,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
       },
       {
         direction: "inbound",
-        subject: "Re: Reqcore Technical Writer offer",
+        subject: "Re: Kush Talents Technical Writer offer",
         bodyText:
           "Hi,\n\nThank you — I am excited about the offer. Tuesday morning would be ideal for a call. My preference is to spread the hours across three days, and I could start on the first Monday next month.\n\nBest,\nFelix",
         daysAgo: 5,
@@ -9620,7 +9620,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
       },
       {
         direction: "outbound",
-        subject: "Re: Reqcore Technical Writer offer",
+        subject: "Re: Kush Talents Technical Writer offer",
         bodyText:
           "Hi Felix,\n\nThat schedule works well for us. I have booked a call for Tuesday at 09:30 CET and included the proposed onboarding plan. We can confirm the exact three-day split together then.\n\nBest,\nDemo Recruiter",
         daysAgo: 4,
@@ -9658,7 +9658,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
     3,
     22,
     "New troubleshooting guide sample",
-    "Hello Reqcore team,\n\nI have added a troubleshooting guide to my application samples. It includes diagnostic decision trees, expected command output, and separate recovery paths for hosted and self-managed installations.\n\nRegards,\nTom",
+    "Hello Kush Talents team,\n\nI have added a troubleshooting guide to my application samples. It includes diagnostic decision trees, expected command output, and separate recovery paths for hosted and self-managed installations.\n\nRegards,\nTom",
     3,
     11,
     45,
@@ -9708,7 +9708,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
         direction: "inbound",
         subject: "Internship interview scheduling",
         bodyText:
-          "Hi Reqcore team,\n\nThank you for moving my application forward. I am in exams until Thursday, but I am available any time on Friday or next Monday afternoon.\n\nBest,\nAisha",
+          "Hi Kush Talents team,\n\nThank you for moving my application forward. I am in exams until Thursday, but I am available any time on Friday or next Monday afternoon.\n\nBest,\nAisha",
         daysAgo: 2,
         hour: 19,
         minute: 10,
@@ -9733,7 +9733,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
         direction: "inbound",
         subject: "Frontend internship project update",
         bodyText:
-          "Hi Reqcore team,\n\nI wanted to share a small update before the next interview: I added keyboard navigation and component tests to the Vue project from my application. I also wrote a short note explaining the accessibility choices and what I would improve with more time.\n\nBest,\nEmma",
+          "Hi Kush Talents team,\n\nI wanted to share a small update before the next interview: I added keyboard navigation and component tests to the Vue project from my application. I also wrote a short note explaining the accessibility choices and what I would improve with more time.\n\nBest,\nEmma",
         daysAgo: 3,
         hour: 18,
         minute: 45,
@@ -9744,7 +9744,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
     4,
     15,
     "Frontend internship application follow-up",
-    "Hi Reqcore team,\n\nI wanted to confirm that my application came through correctly. I have also added the GitHub repository for my latest Vue project, including a short README about the component architecture.\n\nBest,\nElena",
+    "Hi Kush Talents team,\n\nI wanted to confirm that my application came through correctly. I have also added the GitHub repository for my latest Vue project, including a short README about the component architecture.\n\nBest,\nElena",
     4,
     12,
     5,
@@ -9765,7 +9765,7 @@ const CANDIDATE_INBOX_DATA: CandidateInboxConversationSeed[] = [
 // ─────────────────────────────────────────────
 
 async function seed() {
-  console.log("🌱 Seeding Reqcore demo data...\n");
+  console.log("🌱 Seeding Kush Talents demo data...\n");
 
   const demoInboxData = CANDIDATE_INBOX_DATA.filter((conversation) =>
     DEMO_APPLICATION_KEYS.has(

@@ -14,7 +14,6 @@ const route = useRoute()
 const mobileMenuOpen = ref(false)
 
 const navLinks = computed(() => [
-  { to: localePath('/pricing'), label: t('home.nav.pricing'), page: 'pricing' },
   { to: localePath('/jobs'), label: t('home.nav.openPositions'), page: 'jobs' },
 ])
 
@@ -35,14 +34,14 @@ watch(() => route.fullPath, () => {
       >
         <img
           src="/eagle-mascot-logo-128.png"
-          alt="Reqcore mascot"
+          alt="Kush Talents mascot"
           width="28"
           height="28"
           loading="eager"
           decoding="sync"
           class="h-7 w-7 object-contain"
         />
-        Reqcore
+        Kush Talents
       </NuxtLink>
 
       <!-- Center nav links (desktop) -->

@@ -41,7 +41,7 @@ export function renderNotificationLayout(params: {
   footer?: string
 }): string {
   const { title, heading, bodyHtml, cta, note } = params
-  const footer = params.footer ?? 'Sent by Reqcore &mdash; Open-source applicant tracking'
+  const footer = params.footer ?? 'Sent by Kush Talents &mdash; Open-source applicant tracking'
 
   const noteHtml = note
     ? `<p style="margin:24px 0 0;font-size:12px;line-height:1.5;color:#71717a;">${escapeHtml(note)}</p>`
@@ -74,7 +74,7 @@ export function renderNotificationLayout(params: {
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e4e4e7;">
           <tr>
             <td style="padding:32px 32px 24px;text-align:center;border-bottom:1px solid #f4f4f5;">
-              <h1 style="margin:0;font-size:20px;font-weight:600;color:#09090b;">Reqcore</h1>
+              <h1 style="margin:0;font-size:20px;font-weight:600;color:#09090b;">Kush Talents</h1>
             </td>
           </tr>
           <tr>
@@ -179,7 +179,7 @@ function buildApplicationCreated(p: ApplicationCreatedPayload): RenderedEmail {
       '',
       `View the application: ${p.applicationUrl}`,
       '',
-      '— Reqcore',
+      '— Kush Talents',
     ].join('\n'),
   }
 }
@@ -208,7 +208,7 @@ function buildCandidateReplied(p: CandidateRepliedPayload): RenderedEmail {
       '',
       `Open the conversation: ${p.applicationUrl}`,
       '',
-      '— Reqcore',
+      '— Kush Talents',
     ].join('\n'),
   }
 }
@@ -239,7 +239,7 @@ function buildInterviewResponse(p: InterviewResponsePayload): RenderedEmail {
       '',
       `Open the interview: ${p.interviewUrl}`,
       '',
-      '— Reqcore',
+      '— Kush Talents',
     ].join('\n'),
   }
 }
@@ -311,7 +311,7 @@ export function renderDigest(params: {
   if (!validItems || params.items.length === 0) return null
 
   const count = params.items.length
-  const subject = `Your Reqcore digest — ${count} update${count === 1 ? '' : 's'}`
+  const subject = `Your Kush Talents digest — ${count} update${count === 1 ? '' : 's'}`
   const rowsHtml = params.items.map(item =>
     `<tr><td style="padding:10px 0;border-bottom:1px solid #f4f4f5;font-size:14px;line-height:1.5;color:#3f3f46;">`
     + `<a href="${escapeHtml(item.applicationUrl)}" style="color:#3f3f46;text-decoration:none;">${summarizeNotification(item.type, item.payload)}</a>`
@@ -339,7 +339,7 @@ export function renderDigest(params: {
       '',
       `Open dashboard: ${params.dashboardUrl}`,
       '',
-      '— Reqcore',
+      '— Kush Talents',
     ].join('\n'),
   }
 }

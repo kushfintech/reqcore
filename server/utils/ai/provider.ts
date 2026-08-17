@@ -191,7 +191,7 @@ export function createLanguageModel(config: ProviderConfig) {
         headers: {
           // Recommended by OpenRouter for attribution in their dashboard.
           'HTTP-Referer': 'https://reqcore.com',
-          'X-Title': 'Reqcore',
+          'X-Title': 'Kush Talents',
         },
         fetch: pinOpenRouterRouting,
       })

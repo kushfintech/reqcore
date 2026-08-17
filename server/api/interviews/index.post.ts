@@ -110,7 +110,7 @@ export default defineEventHandler(async (event) => {
       ...(body.location ? [`Location: ${body.location}`] : []),
       ...(body.notes ? [`\nNotes: ${body.notes}`] : []),
       '',
-      `Scheduled via ${org?.name || 'Reqcore'}`,
+      `Scheduled via ${org?.name || 'Kush Talents'}`,
     ].join('\n')
     try {
       const result = await createCalendarEvent(session.user.id, {
@@ -120,7 +120,7 @@ export default defineEventHandler(async (event) => {
         durationMinutes: body.duration,
         timezone: body.timezone ?? 'UTC',
         location: body.location ?? null,
-        // Candidate-facing delivery always stays in the Reqcore conversation.
+        // Candidate-facing delivery always stays in the Kush Talents conversation.
         candidateEmail: null,
         candidateName,
         interviewerEmails: body.interviewers ?? [],

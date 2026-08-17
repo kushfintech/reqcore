@@ -11,7 +11,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Dashboard — Reqcore',
+  title: 'Dashboard — Kush Talents',
   description: 'Your recruiting command center',
 })
 

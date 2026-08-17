@@ -13,7 +13,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Reqcore Assistant',
+  title: 'Kush Talents Assistant',
   robots: 'noindex, nofollow',
 })
 
@@ -288,8 +288,8 @@ async function startNew() {
   <div v-if="!entitled" class="mx-auto max-w-2xl px-4 py-16">
     <FeatureLockCard
       feature="chatbot"
-      title="Unlock the Reqcore Assistant"
-      description="Ask questions about your pipeline in plain language — compare candidates, summarise a role's applicants, and dig into any CV. Runs on Reqcore AI out of the box, or on your own API key."
+      title="Unlock the Kush Talents Assistant"
+      description="Ask questions about your pipeline in plain language — compare candidates, summarise a role's applicants, and dig into any CV. Runs on Kush Talents AI out of the box, or on your own API key."
     />
   </div>
 
@@ -304,7 +304,7 @@ async function startNew() {
         <div class="flex items-center gap-3 min-w-0">
           <div class="min-w-0">
             <h1 class="truncate text-sm font-semibold tracking-tight text-surface-900 dark:text-surface-100">
-              Reqcore Assistant
+              Kush Talents Assistant
             </h1>
             <p class="truncate text-[11px] text-surface-500 dark:text-surface-400">
               Context-aware copilot for your hiring data
@@ -434,7 +434,7 @@ async function startNew() {
           </p>
           <p v-else class="mt-2 max-w-md text-sm text-surface-500">
             Ask anything about your jobs, candidates, applications, or uploaded resumes.
-            Reqcore Assistant has live access to your hiring data.
+            Kush Talents Assistant has live access to your hiring data.
           </p>
           <div v-if="!chatbotQuotaExhausted" class="mt-8 grid w-full max-w-2xl grid-cols-1 gap-2 sm:grid-cols-2">
             <button
@@ -459,7 +459,7 @@ async function startNew() {
             <img
               v-if="m.role === 'assistant'"
               src="/eagle-mascot-logo-128.png"
-              alt="Reqcore Assistant"
+              alt="Kush Talents Assistant"
               class="size-9 shrink-0 object-contain mt-2"
             />
 
@@ -682,7 +682,7 @@ async function startNew() {
                 ref="composer"
                 v-model="draft"
                 rows="1"
-                placeholder="Ask Reqcore Assistant anything…"
+                placeholder="Ask Kush Talents Assistant anything…"
                 class="block w-full resize-none border-0 bg-transparent px-4 pt-3 text-sm text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-0"
                 @beforeinput="handleDemoChatAttempt"
                 @keydown="onKeyDown"
@@ -742,7 +742,7 @@ async function startNew() {
               {{ error }}
             </p>
             <p v-else class="mt-2 text-center text-[11px] text-surface-400">
-              Reqcore Assistant can make mistakes. Verify candidate-impacting decisions.
+              Kush Talents Assistant can make mistakes. Verify candidate-impacting decisions.
             </p>
           </template>
         </div>

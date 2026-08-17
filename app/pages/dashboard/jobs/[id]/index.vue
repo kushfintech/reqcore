@@ -34,6 +34,7 @@ const { reportStatus, reportCandidateUpdate } = useInterviewMutationFeedback()
 // ─────────────────────────────────────────────
 
 const { job: jobData, status: jobFetchStatus, error: jobError } = useJob(jobId)
+const { openRejection } = useRejectionFlow()
 
 // ─────────────────────────────────────────────
 // Applications data
@@ -734,7 +735,7 @@ async function deleteNote(note: ApplicationNote) {
 
 useSeoMeta({
   title: computed(() =>
-    jobData.value ? `Pipeline — ${jobData.value.title} — Reqcore` : 'Pipeline — Reqcore',
+    jobData.value ? `Pipeline — ${jobData.value.title} — Kush Talents` : 'Pipeline — Kush Talents',
   ),
   robots: 'noindex, nofollow',
 })
@@ -1133,6 +1134,26 @@ async function changeStatus(status: string) {
   const nextApplicationId = filteredApplications.value[selectedIndex + 1]?.id
     ?? filteredApplications.value[selectedIndex - 1]?.id
     ?? null
+
+  // Rejecting? Route through the shared rejection flow so the user can send a
+  // rejection email (or skip). The status change happens on send/skip.
+  if (status === 'rejected') {
+    const cand = resolvedCurrentApplication.value?.candidate
+    if (cand) {
+      openRejection({
+        applicationId,
+        candidateFirstName: cand.firstName,
+        candidateLastName: cand.lastName,
+        candidateEmail: cand.email,
+        jobTitle: jobData.value?.title ?? '',
+        onDone: async () => {
+          await refreshApps()
+          selectedApplicationId.value = nextApplicationId
+        },
+      })
+      return
+    }
+  }
 
   isMutating.value = true
 

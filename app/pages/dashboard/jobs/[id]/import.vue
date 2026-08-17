@@ -16,7 +16,7 @@ const { track } = useTrack()
 
 useSeoMeta({
   title: computed(() =>
-    job.value ? `Import Candidates - ${job.value.title} - Reqcore` : 'Import Candidates - Reqcore',
+    job.value ? `Import Candidates - ${job.value.title} - Kush Talents` : 'Import Candidates - Kush Talents',
   ),
 })
 

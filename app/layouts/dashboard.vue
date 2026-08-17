@@ -26,6 +26,7 @@ const isDemoAccount = computed(() => session.value?.user?.email === 'demo@reqcor
       <OnboardingSurveyBanner />
     </ClientOnly>
     <AppToasts />
+    <RejectionFlowHost />
     <PreviewUpsellModal v-if="isUpsellOpen" @close="closeUpsell" />
     <ClientOnly>
       <DemoUpsellBanner v-if="isDemoAccount" />

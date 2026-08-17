@@ -17,7 +17,7 @@ const { needsConsent, acceptAnalytics, declineAnalytics } = useAnalyticsConsent(
     >
       <p class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-surface-500 dark:text-surface-400">A small ask</p>
       <p class="text-[13px] leading-relaxed text-surface-700 dark:text-surface-300">
-        Help us improve reqcore. No ads, no data selling, just product insights.
+        Help us improve Kush Talents. No ads, no data selling, just product insights.
       </p>
       <p class="mt-1.5 text-[12px] text-surface-500 dark:text-surface-400">
         <a

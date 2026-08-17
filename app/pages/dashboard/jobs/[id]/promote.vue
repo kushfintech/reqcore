@@ -13,7 +13,7 @@ const { job } = useJob(jobId)
 
 useSeoMeta({
   title: computed(() =>
-    job.value ? `Promote — ${job.value.title} — Reqcore` : 'Promote — Reqcore',
+    job.value ? `Promote — ${job.value.title} — Kush Talents` : 'Promote — Kush Talents',
   ),
 })
 </script>

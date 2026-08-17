@@ -13,7 +13,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Interviews — Reqcore',
+  title: 'Interviews — Kush Talents',
   description: 'Manage all scheduled interviews',
   robots: 'noindex, nofollow',
 })
@@ -866,7 +866,7 @@ const statusCounts = computed(() => {
         <div class="relative bg-white dark:bg-surface-900 rounded-2xl shadow-2xl shadow-surface-900/10 dark:shadow-black/30 ring-1 ring-surface-200/80 dark:ring-surface-700/60 p-6 max-w-sm w-full mx-4">
           <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-2">Delete Interview</h3>
           <p class="text-sm text-surface-600 dark:text-surface-400 mb-4">
-            Delete <strong>{{ deletingInterview?.title }}</strong> from Reqcore? Deleting does not message the candidate and cannot be undone.
+            Delete <strong>{{ deletingInterview?.title }}</strong> from Kush Talents? Deleting does not message the candidate and cannot be undone.
           </p>
           <div class="flex justify-end gap-2">
             <button

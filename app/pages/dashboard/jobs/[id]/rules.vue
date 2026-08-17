@@ -17,7 +17,7 @@ const { rules, status, error, saveRules, runRules } = useApplicationRules(jobId)
 
 useSeoMeta({
   title: computed(() =>
-    job.value ? `Automation Rules — ${job.value.title} — Reqcore` : 'Automation Rules — Reqcore',
+    job.value ? `Automation Rules — ${job.value.title} — Kush Talents` : 'Automation Rules — Kush Talents',
   ),
 })
 

@@ -165,7 +165,7 @@ function setCadence(cadence: BillingCadence) {
                 />
                 <span
                     class="text-lg font-semibold tracking-tight text-surface-900 dark:text-white"
-                    >Reqcore</span
+                    >Kush Talents</span
                 >
             </div>
 
@@ -323,7 +323,7 @@ function setCadence(cadence: BillingCadence) {
                         : "Need help getting started?"
                 }}
                 <a
-                    href="mailto:support@reqcore.com?subject=Reqcore%20account%20help"
+                    href="mailto:support@reqcore.com?subject=Kush Talents%20account%20help"
                     class="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                     >Contact support</a
                 >.
@@ -341,12 +341,12 @@ function setCadence(cadence: BillingCadence) {
                 >
                     <img
                         src="/eagle-mascot-logo.png"
-                        alt="Reqcore mascot"
+                        alt="Kush Talents mascot"
                         class="size-12 object-contain"
                     />
                     <span
                         class="text-lg font-semibold tracking-tight text-surface-900 dark:text-surface-100"
-                        >Reqcore</span
+                        >Kush Talents</span
                     >
                 </div>
 

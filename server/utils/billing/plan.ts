@@ -200,7 +200,7 @@ export async function assertPlanFeature(orgId: string, feature: PlanFeature): Pr
   if (!isStripeBillingConfigured(billingEnv)) {
     const missing = STRIPE_BILLING_ENV_KEYS.filter(key => !billingEnv[key])
     console.error(
-      `[Reqcore] Stripe billing is partially configured (missing ${missing.join(', ')}); ` +
+      `[Kush Talents] Stripe billing is partially configured (missing ${missing.join(', ')}); ` +
         'enforcing plan features by stored subscription tier instead of unlocking. ' +
         'Restore the missing Stripe variables to resume normal billing.',
     )

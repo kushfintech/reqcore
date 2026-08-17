@@ -99,7 +99,7 @@ const paidPlanFeatures: Record<BillingPlanId, { heading: string; features: strin
     features: [
       'Up to 8 active roles',
       'Deeper analysis on every shortlisted application',
-      'Your own domain, no Reqcore branding',
+      'Your own domain, no Kush Talents branding',
       'Email and calendar integrations',
       'Recruiting pipelines',
       'Interview scheduling and templates',
@@ -216,7 +216,7 @@ const plans = computed<PlanCard[]>(() => [
           Unlimited applicants. One price per role.
         </component>
         <p class="mt-5 max-w-2xl text-base leading-7 text-surface-600 dark:text-surface-300 sm:text-lg">
-          Reqcore ranks every applicant — 500 or 50,000 — and hands you a shortlist you can trust. Priced by the roles you keep open, never by your volume. Start free on one role, no card.
+          Kush Talents ranks every applicant — 500 or 50,000 — and hands you a shortlist you can trust. Priced by the roles you keep open, never by your volume. Start free on one role, no card.
         </p>
         <div class="mt-8 flex flex-wrap items-center gap-3">
           <NuxtLink

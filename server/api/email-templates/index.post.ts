@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
     name: body.name,
     subject: body.subject,
     body: body.body,
+    category: body.category,
     createdById: session.user.id,
   }).returning()
 
